@@ -5,4 +5,9 @@ from constants import WIDTH, HEIGHT, MAX_BOMBS
 
 board = Board()
 
-board.print()
+flags = MAX_BOMBS
+while(flags > 0):
+    board.print()
+    row = int(input("ROW:"))
+    col = int(input("COL:"))
+    board.explore(row, col)
