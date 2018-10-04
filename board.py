@@ -64,13 +64,13 @@ class Board:
             return self.board[row][col+1]
 
     def up(self, row, col):
-        if row == HEIGHT-1:
+        if row == 0:
             return None
         else:
             return self.board[row+1][col]
 
     def down(self, row, col):
-        if row == 0:
+        if row == HEIGHT-1:
             return None
         else:
             return self.board[row-1][col]
@@ -100,26 +100,38 @@ class Board:
             return self.board[row+1][col+1]
     
     def print(self):
+        # Column headers
+        print(" ", end='')
+        for col in range(WIDTH):
+            print("%2s"%col, end='')
+        print()
+        
+        row = 0
         for r in self.board:
-            s = ""
+            print(row, end='')
+            row += 1
             for c in r:
-                if(c.value != BOMB):
-                    s += "%2s"%c.value
-                else:
-                    s += " *"
-            print(s)
+                c.print()
+            print()
 
     def markBomb(self, row, col):
         self.board[row][col].mark()
     
     def explore(self, row, col):
-        value = self.board[row][col].explore()
-        while(value == 0):
-            if self.left(row, col) is not None:
-                self.explore(row, col-1)
-            if self.right(row, col) is not None:
-                self.explore(row, col+1)
-            if self.up(row, col) is not None:
-                self.explore(row-1, col)
-            if self.down(row, col) is not None:
-                self.explore(row+1, col)
+        if(not self.board[row][col].explored):
+            value = self.board[row][col].explore()
+
+            if(value == BOMB):
+                self.print()
+                print("YOU LOST :(")
+                exit()
+
+            if(value == 0):
+                if self.left(row, col) is not None and self.left(row, col).value == 0:
+                    self.explore(row, col-1)
+                if self.right(row, col) is not None and self.right(row, col).value == 0:
+                    self.explore(row, col+1)
+                if self.up(row, col) is not None and self.up(row, col).value == 0:
+                    self.explore(row-1, col)
+                if self.down(row, col) is not None and self.down(row, col).value == 0:
+                    self.explore(row+1, col)
