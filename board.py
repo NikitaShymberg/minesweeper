@@ -1,12 +1,12 @@
 from constants import WIDTH, HEIGHT, BOMB
 from random import randint
-
+from tile import Tile
 
 class Board:
     board = []
 
     def __init__(self):
-        self.board = [[0 for i in range(WIDTH)] for j in range(HEIGHT)]
+        self.board = [[Tile(0) for i in range(WIDTH)] for j in range(HEIGHT)]
         self.setupBoard()
 
     def setupBoard(self):
@@ -15,10 +15,10 @@ class Board:
         while(setBombs < 10):
             row = randint(0, WIDTH-1)
             col = randint(0, HEIGHT-1)
-            if(self.board[row][col] != BOMB):
-                self.board[row][col] = BOMB
+            if(self.board[row][col].value != BOMB):
+                self.board[row][col] = Tile(BOMB)
                 setBombs += 1
-        
+
         # TODO: improve
         for r in range(WIDTH):
             for c in range(HEIGHT):
@@ -26,27 +26,27 @@ class Board:
 
     def updateCounts(self, row, col):
         """ Given a cell, update its value """
-        if(self.board[row][col] != BOMB):
-            self.board[row][col] = self.countBombs(row, col)
+        if(self.board[row][col].value != BOMB):
+            self.board[row][col].value = self.countBombs(row, col)
 
     def countBombs(self, r, c):
         """ Count the number of bombs around the cell """
         count = 0
-        if(self.left(r, c) == BOMB):
+        if(self.left(r, c) is not None and self.left(r, c).value == BOMB):
             count += 1
-        if(self.right(r, c) == BOMB):
+        if(self.right(r, c) is not None and self.right(r, c).value == BOMB):
             count += 1
-        if(self.up(r, c) == BOMB):
+        if(self.up(r, c) is not None and self.up(r, c).value == BOMB):
             count += 1
-        if(self.down(r, c) == BOMB):
+        if(self.down(r, c) is not None and self.down(r, c).value == BOMB):
             count += 1
-        if(self.upLeft(r, c) == BOMB):
+        if(self.upLeft(r, c) is not None and self.upLeft(r, c).value == BOMB):
             count += 1
-        if(self.upRight(r, c) == BOMB):
+        if(self.upRight(r, c) is not None and self.upRight(r, c).value == BOMB):
             count += 1
-        if(self.downLeft(r, c) == BOMB):
+        if(self.downLeft(r, c) is not None and self.downLeft(r, c).value == BOMB):
             count += 1
-        if(self.downRight(r, c) == BOMB):
+        if(self.downRight(r, c) is not None and self.downRight(r, c).value == BOMB):
             count += 1
         
         return count
@@ -103,5 +103,23 @@ class Board:
         for r in self.board:
             s = ""
             for c in r:
-                s += "%2s"%c
+                if(c.value != BOMB):
+                    s += "%2s"%c.value
+                else:
+                    s += " *"
             print(s)
+
+    def markBomb(self, row, col):
+        self.board[row][col].mark()
+    
+    def explore(self, row, col):
+        value = self.board[row][col].explore()
+        while(value == 0):
+            if self.left(row, col) is not None:
+                self.explore(row, col-1)
+            if self.right(row, col) is not None:
+                self.explore(row, col+1)
+            if self.up(row, col) is not None:
+                self.explore(row-1, col)
+            if self.down(row, col) is not None:
+                self.explore(row+1, col)
