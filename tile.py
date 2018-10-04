@@ -6,8 +6,18 @@ class Tile:
         self.marked = False
         self.value = value
     
-    def mark():
+    def mark(self):
         self.marked = not self.marked
     
-    def explore():
+    def explore(self):
+        self.explored = True
         return self.value
+    
+    def print(self):
+        if self.explored:
+            if self.value == BOMB:
+                print(" *", end='')
+            else:
+                print("%2s"%self.value, end='')
+        else:
+            print(" .", end='')
