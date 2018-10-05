@@ -67,13 +67,13 @@ class Board:
         if row == 0:
             return None
         else:
-            return self.board[row+1][col]
+            return self.board[row-1][col]
 
     def down(self, row, col):
         if row == HEIGHT-1:
             return None
         else:
-            return self.board[row-1][col]
+            return self.board[row+1][col]
 
     def upLeft(self, row, col):
         if row == 0 or col == 0:
@@ -127,11 +127,26 @@ class Board:
                 exit()
 
             if(value == 0):
-                if self.left(row, col) is not None and self.left(row, col).value == 0:
-                    self.explore(row, col-1)
-                if self.right(row, col) is not None and self.right(row, col).value == 0:
-                    self.explore(row, col+1)
-                if self.up(row, col) is not None and self.up(row, col).value == 0:
-                    self.explore(row-1, col)
-                if self.down(row, col) is not None and self.down(row, col).value == 0:
-                    self.explore(row+1, col)
+                if self.left(row, col) is not None:
+                    if self.left(row, col).value == 0:
+                        self.explore(row, col-1)
+                    elif self.left(row, col).value != BOMB:
+                        self.left(row, col).explore()
+
+                if self.right(row, col) is not None:
+                    if self.right(row, col).value == 0:
+                        self.explore(row, col+1)
+                    elif self.right(row, col).value != BOMB:
+                        self.right(row, col).explore()
+
+                if self.up(row, col) is not None:
+                    if self.up(row, col).value == 0:
+                        self.explore(row-1, col)
+                    elif self.up(row, col).value != BOMB:
+                        self.up(row, col).explore()
+
+                if self.down(row, col) is not None:
+                    if self.down(row, col).value == 0:
+                        self.explore(row+1, col)
+                    elif self.down(row, col).value != BOMB:
+                        self.down(row, col).explore()
