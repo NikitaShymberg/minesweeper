@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..') #TODO: could be nicer
 from constants import WIDTH, HEIGHT, BOMB
 from random import randint
 from tile import Tile
@@ -6,7 +8,7 @@ class Board:
     board = []
 
     def __init__(self):
-        self.board = [[Tile(0) for i in range(WIDTH)] for j in range(HEIGHT)]
+        self.board = [[Tile(0) for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.setupBoard()
 
     def setupBoard(self):
@@ -98,21 +100,24 @@ class Board:
             return None
         else:
             return self.board[row+1][col+1]
-    
-    def print(self):
+
+    def __str__(self):
+        string = " "
         # Column headers
-        print(" ", end='')
         for col in range(WIDTH):
-            print("%2s"%col, end='')
-        print()
+            string += "{0:2}".format(col)
+        string += "\n"
         
+        # The actual rows
         row = 0
         for r in self.board:
-            print(row, end='')
+            string += str(row)
             row += 1
-            for c in r:
-                c.print()
-            print()
+            for tile in r:
+                string += str(tile)
+            string += "\n"
+        
+        return string
 
     def markBomb(self, row, col):
         self.board[row][col].mark()
@@ -122,7 +127,7 @@ class Board:
             value = self.board[row][col].explore()
 
             if(value == BOMB):
-                self.print()
+                print(self)
                 print("YOU LOST :(")
                 exit()
 
