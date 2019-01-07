@@ -1,4 +1,4 @@
-from constants import *
+from constants import BOMB
 
 class Tile:
     def __init__(self, value):

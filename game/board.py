@@ -1,5 +1,6 @@
 import sys
 sys.path.append('..') #TODO: could be nicer
+
 from constants import WIDTH, HEIGHT, BOMB
 from random import randint
 from tile import Tile
