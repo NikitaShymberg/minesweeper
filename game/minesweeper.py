@@ -7,7 +7,7 @@ board = Board()
 
 flags = MAX_BOMBS
 while(flags > 0):
-    board.print()
+    print(board)
     row = int(input("ROW:"))
     col = int(input("COL:"))
     board.explore(row, col)

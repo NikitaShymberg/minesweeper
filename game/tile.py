@@ -13,11 +13,12 @@ class Tile:
         self.explored = True
         return self.value
     
-    def print(self):
+    def __str__(self):
+        # TODO: dynamic widths
         if self.explored:
             if self.value == BOMB:
-                print(" *", end='')
+                return " *"
             else:
-                print("%2s"%self.value, end='')
+                return "{0:2}".format(self.value)
         else:
-            print(" .", end='')
+            return " ."
