@@ -1,5 +1,6 @@
 import sys
-sys.path.append('..') #TODO: could be nicer
+sys.path.append('.') #TODO: must be nicer
+sys.path.append('..') #TODO: must be nicer
 
 from constants import WIDTH, HEIGHT, BOMB, MAX_BOMBS
 from random import randint
