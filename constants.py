@@ -1,4 +1,4 @@
 WIDTH = 8
 HEIGHT = 8
-MAX_BOMBS = 5
+MAX_BOMBS = 1
 BOMB = -1

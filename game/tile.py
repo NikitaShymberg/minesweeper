@@ -20,5 +20,7 @@ class Tile:
                 return " *"
             else:
                 return "{0:2}".format(self.value)
+        elif self.marked:
+            return " X"
         else:
             return " ."
