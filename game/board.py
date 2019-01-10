@@ -2,16 +2,16 @@ import sys
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
-from constants import WIDTH, HEIGHT, BOMB, MAX_BOMBS
+from game.constants import WIDTH, HEIGHT, BOMB, MAX_BOMBS
 from random import randint
-from tile import Tile
+from game.tile import Tile
 
 class Board:
     board = []
     correctMarks = 0
 
     def __init__(self):
-        self.board = [[Tile(0) for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)]
         self.setupBoard()
 
     def setupBoard(self):
@@ -21,7 +21,7 @@ class Board:
             row = randint(0, WIDTH-1)
             col = randint(0, HEIGHT-1)
             if(self.board[row][col].value != BOMB):
-                self.board[row][col] = Tile(BOMB)
+                self.board[row][col] = Tile(BOMB, row, col)
                 setBombs += 1
 
         # TODO: improve
