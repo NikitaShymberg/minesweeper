@@ -1,5 +1,5 @@
-from board import Board
-from constants import WIDTH, HEIGHT, MAX_BOMBS
+from game.board import Board
+from game.constants import WIDTH, HEIGHT, MAX_BOMBS
 # -1 = BOMB
 # number = number of bombs near me
 
@@ -22,3 +22,5 @@ while(not won):
     else:
         print("Error: Invalid mode")
     won = board.isSolved()
+
+print("Congratulations, you won!")

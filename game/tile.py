@@ -1,10 +1,12 @@
-from constants import BOMB
+from game.constants import BOMB
 
 class Tile:
-    def __init__(self, value):
+    def __init__(self, value, row, col):
         self.explored = False
         self.marked = False
         self.value = value
+        self.row = row
+        self.col = col
     
     def mark(self):
         self.marked = not self.marked
