@@ -38,8 +38,18 @@ class BruteForceSolver:
         print("Total unexplored tiles:", totalUnexplored)
 
         possibleBombs = self.permuteBombsInTiles(tilesToConsider)
+        validBombs = []
+        # FIXME: I break everything?
+        for _ in possibleBombs:
+            validBombs.append([x for x in possibleBombs if self.isPermutationValid(x)])
 
-        return tilesToConsider
+        return validBombs
+    
+    def isPermutationValid(self, permutation):
+        # NEXTTIME: here!
+        for p in permutation:
+            pprint(self.getSurroundingTiles(p['tile'], explored=True))
+        return True
     
     def permuteBombsInTiles(self, tiles):
         """ 
@@ -74,20 +84,18 @@ class BruteForceSolver:
                         "isBomb": isBomb
                     })
                 mappedPermutations.append(arrangementGroup)
-        
-        pprint(mappedPermutations)
-        
+                
         return mappedPermutations
 
     def getTilesAdjacentToExploredTiles(self):
         """ Returns all unique unexplored tiles that are next to an explored tile """
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored]
-        tilesToConsider = [self.getSurroundingUnexploredTiles(tile) for tile in exploredTiles]
+        tilesToConsider = [self.getSurroundingTiles(tile) for tile in exploredTiles]
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
 
         return tilesToConsider
 
-    def getSurroundingUnexploredTiles(self, tile):
+    def getSurroundingTiles(self, tile, explored=False):
         surrounding = []
 
         row = tile.row
@@ -102,8 +110,12 @@ class BruteForceSolver:
         surrounding.append(self.board.downLeft(row, col))
         surrounding.append(self.board.downRight(row, col))
         
-        unExplored = lambda x: not x.explored if x is not None else False
-        surrounding = list(filter(unExplored, surrounding))
+        if not explored:
+            filteredTiles = lambda x: not x.explored if x is not None else False
+        else:
+            filteredTiles = lambda x: x.explored if x is not None else False
+
+        surrounding = list(filter(filteredTiles, surrounding))
         
         return surrounding
     
@@ -122,4 +134,5 @@ if __name__ == "__main__":
     bfs.firstMove()
     print(bfs.board)
 
-    pprint(bfs.move())
+    # pprint(bfs.move())
+    bfs.move()
