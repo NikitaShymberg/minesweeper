@@ -3,5 +3,5 @@
 2. Rename vars to _ instead of camel
 3. Document functions
 
-Get tiles that are next to explored tiles
-Only consider those for bomb permutations
+Only actually permute bombs in tiles by unexplored tiles
+Find the probability of having that many bombs in those tiles, scale all probabilities accordingly
