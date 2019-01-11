@@ -24,21 +24,40 @@ class BruteForceSolver:
         self.board.explore(0,0)
 
     def move(self):
+        print("Number of bombs left:", self.unmarkedBombs)
         probabilityBoard = self.calculateProbabilities()
         
         return probabilityBoard
     
     def calculateProbabilities(self):
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
+        totalUnexplored = self.countUnexploredTiles()
+
+        print("Number of tiles to consider:", len(tilesToConsider))
+        print("Total unexplored tiles:", totalUnexplored)
+
+        self.permuteBombsInTiles(tilesToConsider)
 
         return tilesToConsider
+    
+    def permuteBombsInTiles(self, tiles):
+        possiblePermutations = []
+        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles))):
+            bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
+            # NEXTTIME: good lord this is slow
+            # Might need to write my own permutations?
+            # JK look at sympy https://stackoverflow.com/questions/6284396/permutations-with-unique-values
+            possiblePermutations.append(permutations(bombArrangement))
+            q = set()
+            for p in possiblePermutations:
+                if p not in q:
+                    q.add(p)
+                    print(list(p))
 
     def getTilesAdjacentToExploredTiles(self):
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored]
         tilesToConsider = [self.getSurroundingUnexploredTiles(tile) for tile in exploredTiles]
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
-
-        print("number of tiles to consider:", len(tilesToConsider))
 
         return tilesToConsider
 
@@ -61,6 +80,16 @@ class BruteForceSolver:
         surrounding = list(filter(unExplored, surrounding))
         
         return surrounding
+    
+    def countUnexploredTiles(self):
+        # TODO: speed me up scotty
+        count = 0
+        for row in self.board.board:
+            for tile in row:
+                if not tile.explored:
+                    count += 1
+        
+        return count
 
 if __name__ == "__main__":
     bfs = BruteForceSolver()
