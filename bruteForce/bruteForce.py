@@ -7,6 +7,7 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
 from itertools import permutations, chain
+from sympy.utilities.iterables import multiset_permutations
 
 #TESTING
 from pprint import pprint
@@ -36,25 +37,50 @@ class BruteForceSolver:
         print("Number of tiles to consider:", len(tilesToConsider))
         print("Total unexplored tiles:", totalUnexplored)
 
-        self.permuteBombsInTiles(tilesToConsider)
+        possibleBombs = self.permuteBombsInTiles(tilesToConsider)
 
         return tilesToConsider
     
     def permuteBombsInTiles(self, tiles):
+        """ 
+        Set up all the possible (valid and invalid) permutations of bombs in the given tiles 
+        Returns a list of dicts with {tile: $tile, isBomb: $boolean}
+        """
         possiblePermutations = []
-        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles))):
+        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles) + 1)):
             bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
-            # NEXTTIME: good lord this is slow
-            # Might need to write my own permutations?
-            # JK look at sympy https://stackoverflow.com/questions/6284396/permutations-with-unique-values
-            possiblePermutations.append(permutations(bombArrangement))
-            q = set()
-            for p in possiblePermutations:
-                if p not in q:
-                    q.add(p)
-                    print(list(p))
+            possiblePermutations.append(multiset_permutations(bombArrangement)) #TODO: don't need the empty set
+
+        # TODO: timeit, if the other thing is faster, apply to all
+        # Format: [number of bombs[bomb arrangement[isBomb]]]
+        possiblePermutations = set(possiblePermutations)
+        # for p in possiblePermutations:
+        #     if p not in q:
+        #         q.add(p)
+            
+        # TESTING
+        # print("Bomb layouts:")
+        # for pp in possiblePermutations:
+        #     pprint(list(pp))
+
+        tiles = list(tiles)
+        mappedPermutations = []
+        for pp in possiblePermutations:
+            for permutation in pp:
+                arrangementGroup = []
+                for i, isBomb in enumerate(permutation):
+                    arrangementGroup.append({
+                        "tile": tiles[i],
+                        "isBomb": isBomb
+                    })
+                mappedPermutations.append(arrangementGroup)
+        
+        pprint(mappedPermutations)
+        
+        return mappedPermutations
 
     def getTilesAdjacentToExploredTiles(self):
+        """ Returns all unique unexplored tiles that are next to an explored tile """
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored]
         tilesToConsider = [self.getSurroundingUnexploredTiles(tile) for tile in exploredTiles]
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
