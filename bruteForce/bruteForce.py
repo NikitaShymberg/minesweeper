@@ -60,7 +60,7 @@ class BruteForceSolver:
                         print(p['tile'].row, p['tile'].col, p['isBomb'])
                     
                     if p['tile'] == tile and p['isBomb']:
-                        isBombCount[i] += 1
+                        isBombCount[i] += 1 # NOTE I think this is where you weigh it?
                 # TESTING:
                 if i == 0:
                     print('-'*32)
