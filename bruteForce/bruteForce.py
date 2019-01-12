@@ -47,11 +47,34 @@ class BruteForceSolver:
         possibleBombs = self.permuteBombsInTiles(tilesToConsider)
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
 
+        # Format: [permutation[tile and isBomb]]
         validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)]
+
+        isBombCount = [0] * len(tilesToConsider)
+        for i, tile in enumerate(tilesToConsider):
+            for permutation in validBombs:
+                for p in permutation:
+                    
+                    # TESTING
+                    if i == 0:
+                        print(p['tile'].row, p['tile'].col, p['isBomb'])
+                    
+                    if p['tile'] == tile and p['isBomb']:
+                        isBombCount[i] += 1
+                # TESTING:
+                if i == 0:
+                    print('-'*32)
+        print("Number of times this tile was a bomb:", isBombCount)
+        isBombProbability = [count / len(validBombs) for count in isBombCount]
+        print("Probability of this tile being a bomb:", isBombProbability)
+        
+        # Calculate probability of having that many bombs in tilesToConsider
+        bombCounts = [] # bombCounts[i] = the number of bombs in validBombs[i]
         for v in validBombs:
-            for q in v:
-                print(q['isBomb'], q['tile'].row, q['tile'].col)
-            print('-'*32)
+            bombCounts.append(len([isBomb for isBomb in v if isBomb['isBomb'] == BOMB]))
+        
+        print("Number of bombs in each permutation:", bombCounts)
+        
 
         return validBombs
     
