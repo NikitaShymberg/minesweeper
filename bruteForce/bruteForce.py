@@ -65,7 +65,7 @@ class BruteForceSolver:
                 if i == 0:
                     print('-'*32)
         print("Number of times this tile was a bomb:", isBombCount)
-        isBombProbability = [count / len(validBombs) for count in isBombCount]
+        isBombProbability = [count / len(validBombs) for count in isBombCount] # NOTE and here divide by TOTAL possible perms
         print("Probability of this tile being a bomb:", isBombProbability)
         
         # Calculate probability of having that many bombs in tilesToConsider
