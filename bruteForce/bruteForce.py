@@ -28,7 +28,7 @@ class BruteForceSolver:
         self.unmarkedBombs = MAX_BOMBS
     
     def firstMove(self):
-        # TODO: smart and cite
+        # TODO: smartify and cite
         self.board.explore(0,0)
 
     def move(self):
@@ -40,11 +40,11 @@ class BruteForceSolver:
     def calculateProbabilities(self):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
-        totalUnexplored = self.countUnexploredTiles()
-        noInfoTiles = totalUnexplored - len(tilesToConsider)
+        numUnexplored = self.countUnexploredTiles()
+        noInfoTiles = numUnexplored - len(tilesToConsider)
 
         print("Number of tiles to consider:", len(tilesToConsider))
-        print("Total unexplored tiles:", totalUnexplored)
+        print("Total unexplored tiles:", numUnexplored)
         print("Tiles with no info:", noInfoTiles)
 
         possibleBombs = self.permuteBombsInTiles(tilesToConsider)
@@ -87,8 +87,25 @@ class BruteForceSolver:
         print("Chance of having a bomb in no info tile:", noInfoBombChance)
 
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
+        
+        # Build the probability board
+        probabilityBoard = [ [ None for i in range(WIDTH) ] for j in range(HEIGHT) ]
 
-        return tilesAndProbability
+        for tp in tilesAndProbability:
+            probabilityBoard[tp[0].row][tp[0].col] = tp[1]
+
+        for tile in exploredTiles:
+            probabilityBoard[tile.row][tile.col] = -1 # don't click me
+        
+        for i, row in enumerate(probabilityBoard):
+            for j, tile in enumerate(row):
+                if tile is None:
+                    probabilityBoard[i][j] = noInfoBombChance
+
+        for q in probabilityBoard:
+            print(q)
+
+        return probabilityBoard
     
     def countPermutations(self, n, r):
         return factorial(n) / (factorial(n - r))
