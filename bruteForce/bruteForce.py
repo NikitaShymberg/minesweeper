@@ -34,9 +34,38 @@ class BruteForceSolver:
     def move(self):
         print("Number of bombs left:", self.unmarkedBombs)
         probabilityBoard = self.calculateProbabilities()
+
+        # Check if there is any certain bombs
+        for i, row in enumerate(probabilityBoard):
+            for j, pBomb in enumerate(row):
+                if pBomb == 1 and not self.board.board[i][j].marked:
+                    self.board.mark(i, j)
+                    self.unmarkedBombs -= 1
+                    return self.board
+
+        # Explore any certain safe spaces
+        for i, row in enumerate(probabilityBoard):
+            for j, pBomb in enumerate(row):
+                if pBomb == 0:
+                    self.board.explore(i, j)
+                    return self.board
+                    
+
+        # Explore the most likely safe space
+        # TODO: speed me up scotty
+        minimum = 1
+        mini = -1
+        minj = -1
+        for i, row in enumerate(probabilityBoard):
+            for j, pBomb in enumerate(row):
+                if pBomb < minimum:
+                    minimum = pBomb
+                    mini = i
+                    minj = j
+        self.board.explore(mini, minj)
         
-        return probabilityBoard
-    
+        return self.board
+                        
     def calculateProbabilities(self):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
@@ -59,7 +88,7 @@ class BruteForceSolver:
             bombCounts.append(len([isBomb for isBomb in v if isBomb['isBomb'] == BOMB]))
         
         # The number of bomb permutations given bombs in tilesToConsider
-        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts]
+        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0
         print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
         print("Number of bombs in each permutation:", bombCounts)
@@ -70,15 +99,15 @@ class BruteForceSolver:
                 for p in permutation:
                     
                     # TESTING
-                    if i == 0:
-                        print(p['tile'].row, p['tile'].col, p['isBomb'])
+                    # if i == 0:
+                    #     print(p['tile'].row, p['tile'].col, p['isBomb'])
                     
                     if p['tile'] == tile and p['isBomb']:
                         isBombCount[i] += permutationsOfOtherTiles[j] # NOTE I think this is where you weigh it?
                         # Add the number of times that this permutation happened in ALL possible perms
                 # TESTING:
-                if i == 0:
-                    print('-'*32)
+                # if i == 0:
+                #     print('-'*32)
         print("Number of times this tile was a bomb:", isBombCount)
         isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount] # NOTE and here divide by TOTAL possible perms
         print("Probability of this tile being a bomb:", isBombProbability)
@@ -95,15 +124,19 @@ class BruteForceSolver:
             probabilityBoard[tp[0].row][tp[0].col] = tp[1]
 
         for tile in exploredTiles:
-            probabilityBoard[tile.row][tile.col] = -1 # don't click me
+            probabilityBoard[tile.row][tile.col] = 2 # don't click me
         
         for i, row in enumerate(probabilityBoard):
             for j, tile in enumerate(row):
                 if tile is None:
                     probabilityBoard[i][j] = noInfoBombChance
 
+        # TESTING
+        print("\n Probability board:")
         for q in probabilityBoard:
-            print(q)
+            for p in q:
+                print("{0:.2f}".format(p), end=" ")
+            print()
 
         return probabilityBoard
     
@@ -217,5 +250,11 @@ if __name__ == "__main__":
     bfs.firstMove()
     print(bfs.board)
 
-    # pprint(bfs.move())
-    bfs.move()
+    while bfs.unmarkedBombs > 0:
+        print(str(bfs.move()))
+        
+    # print(str(bfs.move()))
+    # print(bfs.board)
+    # print(str(bfs.move()))
+    # print(bfs.board)
+    # print(str(bfs.move()))

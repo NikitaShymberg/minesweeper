@@ -2,7 +2,7 @@
 1. Imports are wack
 2. Rename vars to _ instead of camel
 3. Document functions
-4. Maybe pprint the board?
+1. Numpy might make things faster
 
 [numbombs[listofbombs[isBomb]]]
 
