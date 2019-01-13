@@ -80,7 +80,7 @@ class BruteForceSolver:
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
 
         # Format: [permutation[tile and isBomb]]
-        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)]
+        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)] # BUG: This is empty
 
         # Calculate probability of having that many bombs in tilesToConsider
         bombCounts = [] # bombCounts[i] = the number of bombs in validBombs[i]
@@ -91,7 +91,7 @@ class BruteForceSolver:
         permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0
         print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
-        print("Number of bombs in each permutation:", bombCounts)
+        print("Number of bombs in each permutation:", bombCounts) # BUG: tthis is sometimes empty!
 
         isBombCount = [0] * len(tilesToConsider)
         for i, tile in enumerate(tilesToConsider):
@@ -103,13 +103,12 @@ class BruteForceSolver:
                     #     print(p['tile'].row, p['tile'].col, p['isBomb'])
                     
                     if p['tile'] == tile and p['isBomb']:
-                        isBombCount[i] += permutationsOfOtherTiles[j] # NOTE I think this is where you weigh it?
-                        # Add the number of times that this permutation happened in ALL possible perms
+                        isBombCount[i] += permutationsOfOtherTiles[j]
                 # TESTING:
                 # if i == 0:
                 #     print('-'*32)
         print("Number of times this tile was a bomb:", isBombCount)
-        isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount] # NOTE and here divide by TOTAL possible perms
+        isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount]
         print("Probability of this tile being a bomb:", isBombProbability)
         
         noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
@@ -143,13 +142,14 @@ class BruteForceSolver:
     def countPermutations(self, n, r):
         return factorial(n) / (factorial(n - r))
     
+    # BUG: FIXME: sometimes I never return true
     def isPermutationValid(self, permutation, explored):
         """ Returns true if the given permutation of bombs is valid given the explored tiles """
         for e in explored:
-            adjacentBombs = [p for p in permutation if self.isAdjacent(e, p['tile']) and p['isBomb'] == BOMB]
+            adjacentBombs = [p for p in permutation if self.isAdjacent(e, p['tile']) and (p['isBomb'] == BOMB or self.board.board[p['tile'].row][p['tile'].col].marked)]
             if len(adjacentBombs) != e.value:
                 return False
-
+       
         return True
     
     def isAdjacent(self, a, b):
@@ -203,14 +203,19 @@ class BruteForceSolver:
                 
         return mappedPermutations
 
+    # BUG: I think it gets confused with marked bombs
     def getTilesAdjacentToExploredTiles(self):
         """ Returns all unique unexplored tiles that are next to an explored tile """
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored]
         tilesToConsider = [self.getSurroundingTiles(tile) for tile in exploredTiles]
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
 
+        for t in tilesToConsider:
+            print(t.row, t.col)
+
         return tilesToConsider
 
+    # BUG: I think it gets confused with marked bombs
     def getSurroundingTiles(self, tile, explored=False):
         surrounding = []
 
@@ -227,7 +232,7 @@ class BruteForceSolver:
         surrounding.append(self.board.downRight(row, col))
         
         if not explored:
-            filteredTiles = lambda x: not x.explored if x is not None else False
+            filteredTiles = lambda x: not x.explored and not x.marked if x is not None else False
         else:
             filteredTiles = lambda x: x.explored if x is not None else False
 
