@@ -139,12 +139,14 @@ class BruteForceSolver:
             probabilityBoard[tp[0].row][tp[0].col] = tp[1]
 
         for tile in exploredTiles:
-            probabilityBoard[tile.row][tile.col] = 2 # don't click me
+            probabilityBoard[tile.row][tile.col] = 2 # don't click me, I', explored
         
         for i, row in enumerate(probabilityBoard):
             for j, tile in enumerate(row):
                 if tile is None:
                     probabilityBoard[i][j] = noInfoBombChance
+                if self.board.board[i][j].marked:
+                    probabilityBoard[i][j] = 3 # don't click me, I'm marked
 
         # TESTING
         print("\n Probability board:")
@@ -280,6 +282,8 @@ if __name__ == "__main__":
 
     while bfs.unmarkedBombs > 0:
         print(str(bfs.move()))
+    
+    print("Hooray! I won!")
         
     # print(str(bfs.move()))
     # print(bfs.board)
