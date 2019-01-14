@@ -26,10 +26,24 @@ class BruteForceSolver:
         
         self.board = Board()
         self.unmarkedBombs = MAX_BOMBS
+
+        # Set up remainingValue to be reduced whenever a bomb is marked
+        for i, r in enumerate(self.board.board):
+            for j, _ in enumerate(r):
+                self.board.board[i][j].remainingValue = self.board.board[i][j].value
     
     def firstMove(self):
         # TODO: smartify and cite
         self.board.explore(0,0)
+    
+    def mark(self, row, col):
+        """ Marks the tile at the row and column as a bomb and updates the remaining value of surrounding tiles """
+        self.board.mark(row, col)
+        self.unmarkedBombs -= 1
+        tilesToReduce = self.getAllSurroundingTiles(Tile(0, row, col))
+        for t in tilesToReduce:
+            if t is not None and t.value != 0 and t.value != BOMB:
+                self.board.board[t.row][t.col].remainingValue -= 1
 
     def move(self):
         print("Number of bombs left:", self.unmarkedBombs)
@@ -39,14 +53,15 @@ class BruteForceSolver:
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 1 and not self.board.board[i][j].marked:
-                    self.board.mark(i, j)
-                    self.unmarkedBombs -= 1
+                    print("MOVE: mark", i, j)
+                    self.mark(i, j)
                     return self.board
 
         # Explore any certain safe spaces
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 0:
+                    print("MOVE: explore1", i, j)
                     self.board.explore(i, j)
                     return self.board
                     
@@ -62,6 +77,7 @@ class BruteForceSolver:
                     minimum = pBomb
                     mini = i
                     minj = j
+        print("MOVE: explore2", i, j)
         self.board.explore(mini, minj)
         
         return self.board
@@ -116,7 +132,7 @@ class BruteForceSolver:
 
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
         
-        # Build the probability board
+        # Build the probability board BUG: marked tiles are 0s
         probabilityBoard = [ [ None for i in range(WIDTH) ] for j in range(HEIGHT) ]
 
         for tp in tilesAndProbability:
@@ -142,12 +158,14 @@ class BruteForceSolver:
     def countPermutations(self, n, r):
         return factorial(n) / (factorial(n - r))
     
-    # BUG: FIXME: sometimes I never return true
+    # BUG: FIXME: Explored tile's values need to be reduced by the number of adjacent marked tiles
     def isPermutationValid(self, permutation, explored):
         """ Returns true if the given permutation of bombs is valid given the explored tiles """
         for e in explored:
-            adjacentBombs = [p for p in permutation if self.isAdjacent(e, p['tile']) and (p['isBomb'] == BOMB or self.board.board[p['tile'].row][p['tile'].col].marked)]
-            if len(adjacentBombs) != e.value:
+            adjacentBombs = [p for p in permutation if self.isAdjacent(e, p['tile']) and p['isBomb'] == BOMB]
+            # if len(adjacentBombs) > 0 and len(adjacentBombs) ==  e.value - 1:
+            #     print("ERROR?:", len(adjacentBombs), e.row, e.col, e.value)
+            if len(adjacentBombs) != e.remainingValue:
                 return False
        
         return True
@@ -210,13 +228,13 @@ class BruteForceSolver:
         tilesToConsider = [self.getSurroundingTiles(tile) for tile in exploredTiles]
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
 
+        # TESTING
         for t in tilesToConsider:
-            print(t.row, t.col)
+            print("Considering: ", t.row, t.col)
 
         return tilesToConsider
 
-    # BUG: I think it gets confused with marked bombs
-    def getSurroundingTiles(self, tile, explored=False):
+    def getAllSurroundingTiles(self, tile):
         surrounding = []
 
         row = tile.row
@@ -230,6 +248,11 @@ class BruteForceSolver:
         surrounding.append(self.board.upRight(row, col))
         surrounding.append(self.board.downLeft(row, col))
         surrounding.append(self.board.downRight(row, col))
+        
+        return surrounding
+
+    def getSurroundingTiles(self, tile, explored=False):
+        surrounding = self.getAllSurroundingTiles(tile)
         
         if not explored:
             filteredTiles = lambda x: not x.explored and not x.marked if x is not None else False
