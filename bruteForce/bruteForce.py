@@ -2,7 +2,6 @@ import sys
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
-# from game.constants import *
 from game.board import Board
 from game.tile import Tile
 from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT

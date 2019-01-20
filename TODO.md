@@ -2,7 +2,8 @@
 1. Imports are wack
 2. Rename vars to _ instead of camel
 3. Document functions
-1. Numpy might make things faster
+4. Numpy might make things faster
+5. Refactor some things
 
 [numbombs[listofbombs[isBomb]]]
 
