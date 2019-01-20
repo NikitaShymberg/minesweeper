@@ -5,11 +5,16 @@ sys.path.append('..') #TODO: must be nicer
 
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
+from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, TRAINING_DATA_FILE
 import h5py
 
 def getAllSurroundingTiles(board, tile):
-    """ Returns a list of the 5x5 grid of surrounding tiles any invalid tile is None """ 
+    """ Returns a list of the 5x5 grid of surrounding tiles any invalid tile is None """
+    # NOTE: surrounding format = [left, right, up, down, 
+    #                             upLeft, leftLeft, upLeftLeft, upUpLeftLeft, upUpLeft, upUp
+    #                             upRight, upUpRight, upUpRightRight, upRightRight
+    #                             downLeft, downLeftLeft, downDownLeftLeft, downDownLeft
+    #                             downRight, downDown, downDownRight, downDownRightRight, downRightRight, righRight]
     surrounding = []
 
     row = tile.row
@@ -80,6 +85,7 @@ def processTile(board, tile):
     label = 1 if tile.value == BOMB else 0
     surroundingTiles = getAllSurroundingTiles(board, tile)
     
+    # FIXME: actually none of these values make sense
     values = []
     for tile in surroundingTiles:
         if tile is not None:
@@ -90,7 +96,7 @@ def processTile(board, tile):
     return values, label
 
 board = Board()
-with h5py.File("trainingData.h5", "w") as f:
+with h5py.File(TRAINING_DATA_FILE, "w") as f:
     allTileInfo = []
     allLabels = []
 

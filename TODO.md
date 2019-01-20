@@ -4,6 +4,8 @@
 3. Document functions
 4. Numpy might make things faster
 5. Refactor some things
+6. LINT!!
+7. Print the surrounding tiles all cool
 
 [numbombs[listofbombs[isBomb]]]
 
