@@ -61,8 +61,16 @@ class NeuralNetSolver:
         acc = accuracy_score(self.y_test, y_pred)
         print("Accuracy:", acc)
 
+    def customTest(self):
+        X = [[0.125, 0.125, 0.125, 0.125, 0.125, 0, 0, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0, 0],]
+        X = [[0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 0.5],]
+        p = self.clf.predict(X)
+        print("CUSTOM prediction:", p)
+        print("Layout")
+        self.print5x5(X[0], p)
     
 if __name__ == "__main__":
     nns = NeuralNetSolver()
     nns.train()
-    nns.test()
+    # nns.test()
+    nns.customTest()
