@@ -7,6 +7,7 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, TRAINING_DATA_FILE
 import h5py
+import numpy as np
 
 def getAllSurroundingTiles(board, tile):
     """ Returns a list of the 5x5 grid of surrounding tiles any invalid tile is None """
@@ -81,30 +82,43 @@ def processTile(board, tile):
     """
     Returns a list of the values of the 5x5 grid of surrounding tiles excluding the cetre tile
     As well as the label for the centre tile
+    One hot format:
+    [
+        [isTile, isUnexplored, isBomb, 0, 1, 2, 3, 4, 5, 6, 7, 8], ...
+    ]
     """
     label = 1 if tile.value == BOMB else 0
     surroundingTiles = getAllSurroundingTiles(board, tile)
     
-    # FIXME: actually none of these values make sense
-    values = []
-    for tile in surroundingTiles:
-        if tile is not None:
-            values.append(tile.value / 8)
+    values = np.zeros((24, 11))
+    for i, tile in enumerate(surroundingTiles):
+        if tile is None:
+            values[i][0] = 1
+        elif not tile.explored: #TODO: explore stuff
+            values[i][1] = 1
+        elif tile.value == BOMB:
+            values[i][2] = 1
         else:
-            values.append(-1) # Not a tile
+            values[i][tile.value + 3] = 1
 
     return values, label
 
-board = Board()
-with h5py.File(TRAINING_DATA_FILE, "w") as f:
+def generateTrainingData():
+    board = Board()
     allTileInfo = []
     allLabels = []
+
+    # TODO: explore some stuff here
 
     for row in board.board:
         for tile in row:
             tileInfo, label = processTile(board, tile)
-            allTileInfo.append(tileInfo)
+            allTileInfo.append(tileInfo) # FIXME append bad
             allLabels.append(label)
-    
-    f["data"] = allTileInfo
-    f["class"] = allLabels
+        
+    with h5py.File(TRAINING_DATA_FILE, "w") as f:
+        f["data"] = allTileInfo
+        f["class"] = allLabels
+
+if __name__ == "__main__":
+    generateTrainingData()

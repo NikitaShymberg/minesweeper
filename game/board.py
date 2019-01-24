@@ -24,7 +24,7 @@ class Board:
                 self.board[row][col] = Tile(BOMB, row, col)
                 setBombs += 1
 
-        # TODO: improve
+        # TODO: improve?
         for r in range(WIDTH):
             for c in range(HEIGHT):
                 self.updateCounts(r, c)

@@ -1,16 +1,19 @@
 # TODO:
 1. Imports are wack
-2. Rename vars to _ instead of camel
+2. Rename vars to _ instead of camel?
 3. Document functions
 4. Numpy might make things faster
+   1. Get rid of as many appends as you can
 5. Refactor some things
 6. LINT!!
-7. Print the surrounding tiles all cool
 
-[numbombs[listofbombs[isBomb]]]
-
-Only actually permute bombs in tiles by unexplored tiles
-Find the probability of having that many bombs in those tiles, scale all probabilities accordingly
+Generating data:
+    Make a board with a bunch of bombs
+    Explore some tiles randomly
+    getTilesAdjacentToExploredTiles()
+    process them
+    return that
+    do this on demand
 
 Interesting Examples:
 
