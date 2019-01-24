@@ -95,7 +95,7 @@ class BruteForceSolver:
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
 
         # Format: [permutation[tile and isBomb]]
-        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)] # BUG: This is empty
+        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)]
 
         # Calculate probability of having that many bombs in tilesToConsider
         bombCounts = [] # bombCounts[i] = the number of bombs in validBombs[i]
@@ -106,7 +106,7 @@ class BruteForceSolver:
         permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0
         print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
-        print("Number of bombs in each permutation:", bombCounts) # BUG: tthis is sometimes empty!
+        print("Number of bombs in each permutation:", bombCounts)
 
         isBombCount = [0] * len(tilesToConsider)
         for i, tile in enumerate(tilesToConsider):
@@ -131,7 +131,7 @@ class BruteForceSolver:
 
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
         
-        # Build the probability board BUG: marked tiles are 0s
+        # Build the probability board
         probabilityBoard = [ [ None for i in range(WIDTH) ] for j in range(HEIGHT) ]
 
         for tp in tilesAndProbability:
@@ -159,7 +159,7 @@ class BruteForceSolver:
     def countPermutations(self, n, r):
         return factorial(n) / (factorial(n - r))
     
-    # BUG: FIXME: Explored tile's values need to be reduced by the number of adjacent marked tiles
+    
     def isPermutationValid(self, permutation, explored):
         """ Returns true if the given permutation of bombs is valid given the explored tiles """
         for e in explored:
@@ -222,7 +222,7 @@ class BruteForceSolver:
                 
         return mappedPermutations
 
-    # BUG: I think it gets confused with marked bombs
+    
     def getTilesAdjacentToExploredTiles(self):
         """ Returns all unique unexplored tiles that are next to an explored tile """
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored]
