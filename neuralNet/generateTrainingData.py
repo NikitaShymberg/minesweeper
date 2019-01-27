@@ -5,7 +5,7 @@ sys.path.append('..') #TODO: must be nicer
 
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, TRAINING_DATA_FILE
+from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, TRAINING_DATA_FILE, BATCH_SIZE
 from bruteForce.bruteForce import BruteForceSolver # TODO: that's kidna gross 
 import h5py
 import numpy as np
@@ -118,35 +118,45 @@ def exploreSafeTile(board):
     board.explore(row, col)
 
 def generateTrainingData():
-    """ Returns a one hot encoding of the data and a list of the labels """
-    board = Board()
+    """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
     allTileInfo = []
     allLabels = []
 
-    # TODO: fiddle with number
-    for _ in range(25):
-        exploreSafeTile(board)
-    
-    # print(str(board))
-    # FIXME this is hideous
-    bfs = BruteForceSolver()
-    bfs.board = board
-    tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
-    print(len(tilesToConsider))
+    while len(allTileInfo) < BATCH_SIZE:
+        allTileInfo = []
+        allLabels = []
+        board = Board()
+        # TODO: fiddle with number
+        for _ in range(17):
+            exploreSafeTile(board)
+        
+        # FIXME this is hideous
+        bfs = BruteForceSolver()
+        bfs.board = board
+        tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
 
-    for tile in tilesToConsider:
-        tileInfo, label = processTile(board, tile)
-        allTileInfo.append(tileInfo) # FIXME append bad
-        allLabels.append(label)
+        for tile in tilesToConsider:
+            tileInfo, label = processTile(board, tile)
+            allTileInfo.append(tileInfo) # FIXME append bad?\
+            allLabels.append(label)
+                
     
-    # print(allTileInfo[0])
-    # print(allLabels[0])
+    # Ensure that only BATCH_SIZE samples are returned
+    allTileInfo = allTileInfo[:BATCH_SIZE]
+    allLabels = allLabels[:BATCH_SIZE]
 
     with h5py.File(TRAINING_DATA_FILE, "w") as f:
         f["data"] = allTileInfo
         f["class"] = allLabels
     
-    return allTileInfo, allLabels
+    return np.asarray(allTileInfo), np.asarray(allLabels)
 
 if __name__ == "__main__":
-    generateTrainingData()
+    l = []
+    for i in range(1000):
+        l.append(len(generateTrainingData()[0]))
+    l = sorted(l)
+    print("testing max:", max(l))
+    print("testing last:", l[-1])
+    print("Average:", sum(l)/len(l))
+    print("10%:", l[100])

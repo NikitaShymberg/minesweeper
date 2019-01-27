@@ -9,3 +9,4 @@ MAX_BOMBS = 10
 BOMB = -1
 
 TRAINING_DATA_FILE = "trainingData.h5"
+BATCH_SIZE = 20 # TODO: might actually need to be bigger
