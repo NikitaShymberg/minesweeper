@@ -127,7 +127,7 @@ def generateTrainingData():
     for _ in range(25):
         exploreSafeTile(board)
     
-    print(str(board))
+    # print(str(board))
     # FIXME this is hideous
     bfs = BruteForceSolver()
     bfs.board = board
@@ -139,8 +139,8 @@ def generateTrainingData():
         allTileInfo.append(tileInfo) # FIXME append bad
         allLabels.append(label)
     
-    print(allTileInfo[0])
-    print(allLabels[0])
+    # print(allTileInfo[0])
+    # print(allLabels[0])
 
     with h5py.File(TRAINING_DATA_FILE, "w") as f:
         f["data"] = allTileInfo

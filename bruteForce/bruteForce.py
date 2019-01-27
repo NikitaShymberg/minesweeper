@@ -230,8 +230,8 @@ class BruteForceSolver:
         tilesToConsider = set(chain.from_iterable(tilesToConsider))
 
         # TESTING
-        for t in tilesToConsider:
-            print("Considering: ", t.row, t.col)
+        # for t in tilesToConsider:
+        #     print("Considering: ", t.row, t.col)
 
         return tilesToConsider
 
