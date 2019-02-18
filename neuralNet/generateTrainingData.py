@@ -5,19 +5,15 @@ sys.path.append('..') #TODO: must be nicer
 
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, TRAINING_DATA_FILE, BATCH_SIZE
+from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, BATCH_SIZE
 from bruteForce.bruteForce import BruteForceSolver # TODO: that's kidna gross 
 import h5py
+import torch
 import numpy as np
 from random import randrange
 
 def getAllSurroundingTiles(board, tile):
     """ Returns a list of the 5x5 grid of surrounding tiles any invalid tile is None """
-    # NOTE: surrounding format = [left, right, up, down, 
-    #                             upLeft, leftLeft, upLeftLeft, upUpLeftLeft, upUpLeft, upUp
-    #                             upRight, upUpRight, upUpRightRight, upRightRight
-    #                             downLeft, downLeftLeft, downDownLeftLeft, downDownLeft
-    #                             downRight, downDown, downDownRight, downDownRightRight, downRightRight, righRight]
     surrounding = []
 
     row = tile.row
@@ -76,6 +72,14 @@ def getAllSurroundingTiles(board, tile):
         surrounding.append(board.right(dr.row, dr.col))
         surrounding.append(board.upRight(dr.row, dr.col))
     
+    # Re-order stuff for clarity and so conv layer works good
+    surrounding = [
+        surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],
+        surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],
+        surrounding[5], surrounding[0], surrounding[1], surrounding[23],
+        surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],
+        surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]
+        ]
     
     return surrounding
 
@@ -117,14 +121,12 @@ def exploreSafeTile(board):
     
     board.explore(row, col)
 
-def generateTrainingData():
+def generateTrainingData(model):
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
     allTileInfo = []
     allLabels = []
 
-    while len(allTileInfo) < BATCH_SIZE:
-        allTileInfo = []
-        allLabels = []
+    while len(allLabels) < 2.5 * BATCH_SIZE: # FIXME: someimes still breaks
         board = Board()
         # TODO: fiddle with number
         for _ in range(17):
@@ -137,26 +139,35 @@ def generateTrainingData():
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
-            allTileInfo.append(tileInfo) # FIXME append bad?\
+            allTileInfo.append(tileInfo) # FIXME append bad?
             allLabels.append(label)
-                
     
-    # Ensure that only BATCH_SIZE samples are returned
-    allTileInfo = allTileInfo[:BATCH_SIZE]
-    allLabels = allLabels[:BATCH_SIZE]
+    allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
+    if model == "nn":
+        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 11, 24)
+        allTileInfo = torch.from_numpy(allTileInfo).float()
+        allLabels = torch.from_numpy(allLabels)
+        allTileInfo = allTileInfo.cuda()
+        allLabels = allLabels.cuda()
+    
+    return allTileInfo, allLabels
 
-    with h5py.File(TRAINING_DATA_FILE, "w") as f:
-        f["data"] = allTileInfo
-        f["class"] = allLabels
+def balanceLabels(allTileInfo, allLabels):
+    """ Returns balanced data - i.e. equal amounts of both classes """
+    allTileInfo = np.asarray(allTileInfo)
+    allLabels = np.asarray(allLabels)
+
+    mask0 = np.random.choice(np.where(allLabels == 0)[0], BATCH_SIZE // 2, replace=False)
+    mask1 = np.random.choice(np.where(allLabels == 1)[0], BATCH_SIZE // 2, replace=False)
+    allTileInfo = np.vstack((allTileInfo[mask0], allTileInfo[mask1])) 
+    allLabels = np.hstack((allLabels[mask0], allLabels[mask1]))
+
+    mask = np.random.permutation(np.arange(BATCH_SIZE))
+    allTileInfo = allTileInfo[mask]
+    allLabels = allLabels[mask]
     
-    return np.asarray(allTileInfo), np.asarray(allLabels)
+    return allTileInfo, allLabels
 
 if __name__ == "__main__":
-    l = []
-    for i in range(1000):
-        l.append(len(generateTrainingData()[0]))
-    l = sorted(l)
-    print("testing max:", max(l))
-    print("testing last:", l[-1])
-    print("Average:", sum(l)/len(l))
-    print("10%:", l[100])
+    data, labels = generateTrainingData("nn")
+    print(data.shape)
