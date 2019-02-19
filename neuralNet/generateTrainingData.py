@@ -5,7 +5,7 @@ sys.path.append('..') #TODO: must be nicer
 
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT, BATCH_SIZE
+from game.constants import *
 from bruteForce.bruteForce import BruteForceSolver # TODO: that's kidna gross 
 import h5py
 import torch
@@ -72,19 +72,27 @@ def getAllSurroundingTiles(board, tile):
         surrounding.append(board.right(dr.row, dr.col))
         surrounding.append(board.upRight(dr.row, dr.col))
     
+    if MODEL == "nn":
     # Re-order stuff for clarity and so conv layer works good
-    surrounding = [
-        surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],
-        surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],
-        surrounding[5], surrounding[0], surrounding[1], surrounding[23],
-        surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],
-        surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]
-        ]
+        surrounding = [
+            surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],
+            surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],
+            surrounding[5], surrounding[0], surrounding[1], surrounding[23],
+            surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],
+            surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]
+            ]
+    elif MODEL == "2dnn":
+        surrounding = [
+            [surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],],
+            [surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],],
+            [surrounding[5], surrounding[0], 0, surrounding[1], surrounding[23],],
+            [surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],],
+            [surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]],
+            ]
     
     return surrounding
 
 # Labels: 0 --> safe, 1 --> bomb
-# TODO: TESTME!
 def processTile(board, tile):
     """
     Returns a list of the values of the 5x5 grid of surrounding tiles excluding the cetre tile
@@ -97,18 +105,52 @@ def processTile(board, tile):
     label = 1 if tile.value == BOMB else 0
     surroundingTiles = getAllSurroundingTiles(board, tile)
     
-    values = np.zeros((24, 11))
-    for i, tile in enumerate(surroundingTiles):
-        if tile is None:
-            values[i][0] = 1
-        elif not tile.explored:
-            values[i][1] = 1
-        elif tile.value == BOMB:
-            values[i][2] = 1
-        else:
-            values[i][tile.value + 3] = 1
+    if MODEL == "nn":
+        values = np.zeros((24, 12))
+        for i, tile in enumerate(surroundingTiles):
+            if tile is None:
+                values[i][0] = 1
+            elif not tile.explored:
+                values[i][1] = 1
+            elif tile.value == BOMB:
+                values[i][2] = 1
+            else:
+                values[i][tile.value + 3] = 1
+
+    elif MODEL == "2dnn":
+        values = np.zeros((5, 5, 12))
+        for i, row in enumerate(surroundingTiles):
+            for j, tile in enumerate(row):
+                if tile is None:
+                    values[i][j][0] = 1
+                elif not tile.explored:
+                    values[i][j][1] = 1
+                elif tile.value == BOMB:
+                    values[i][j][2] = 1
+                else:
+                    values[i][j][tile.value + 3] = 1
 
     return values, label
+
+def transformBoard(board):
+    """ Given a board, transforms all tiles next to eplored ones into a format that the nn can take
+    Returns a list of dicts with the "tile" and "nn" keys
+    """
+
+    # FIXME this is hideous
+    out = []
+    bfs = BruteForceSolver()
+    bfs.board = board
+    tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
+    for tile in tilesToConsider:
+        processedTile, _ = processTile(board, tile)
+        out.append({
+            "tile": tile,
+            "nn": processedTile
+        })
+    
+    return out
+
 
 def exploreSafeTile(board):
     """ Explores a tile that is not a bomb """
@@ -121,14 +163,13 @@ def exploreSafeTile(board):
     
     board.explore(row, col)
 
-def generateTrainingData(model):
+def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
     allTileInfo = []
     allLabels = []
 
-    while len(allLabels) < 2.5 * BATCH_SIZE: # FIXME: someimes still breaks
+    while len(allLabels) < 2.5 * BATCH_SIZE:
         board = Board()
-        # TODO: fiddle with number
         for _ in range(17):
             exploreSafeTile(board)
         
@@ -139,12 +180,12 @@ def generateTrainingData(model):
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
-            allTileInfo.append(tileInfo) # FIXME append bad?
+            allTileInfo.append(tileInfo)
             allLabels.append(label)
     
     allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
-    if model == "nn":
-        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 11, 24)
+    if MODEL == "nn":
+        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 24)
         allTileInfo = torch.from_numpy(allTileInfo).float()
         allLabels = torch.from_numpy(allLabels)
         allTileInfo = allTileInfo.cuda()
@@ -169,5 +210,5 @@ def balanceLabels(allTileInfo, allLabels):
     return allTileInfo, allLabels
 
 if __name__ == "__main__":
-    data, labels = generateTrainingData("nn")
+    data, labels = generateTrainingData()
     print(data.shape)
