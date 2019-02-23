@@ -7,9 +7,9 @@ To write, compare, and analyze three different approaches to create a solver for
 ## Task List:
 - [x] Create the game
   - [ ] Optional: make it a little prettier
-- [ ] Brute force solver
-- [ ] Neural netwrork
-- [ ] Third algorithm (maybe genetic, maybe svn, maybe other)
+- [x] Brute force solver
+- [ ] Neural network
+- [ ] Third algorithm (random forest?)
 - [ ] Compare in terms of:
   - [ ] Winrate
   - [ ] Average solve time
