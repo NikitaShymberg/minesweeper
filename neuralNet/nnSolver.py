@@ -4,23 +4,24 @@ sys.path.append('..') #TODO: must be nicer
 
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
+from game.constants import *
 from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
-from neuralNet import miniNet
-from generateTrainingData import transformBoard
+from twoD_nn import miniNet
+from generateTrainingData import transformBoard, generateTrainingData
 import numpy as np
+import torch
 
 #TESTING
 from pprint import pprint
 
-class BruteForceSolver:
+class NeuralNetSolver:
     def __init__(self):
         self.board = Board()
         self.unmarkedBombs = MAX_BOMBS
-        self.net = miniNet()
-        self.optimizer = optim.Adam(mini.parameters(), lr=LR, weight_decay=REG)
+        self.net = miniNet().cuda()
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=LR, weight_decay=REG)
         self.net.load(self.optimizer) # TODO: ensure this works
 
         # Set up remainingValue to be reduced whenever a bomb is marked
@@ -45,6 +46,7 @@ class BruteForceSolver:
     def move(self):
         validTiles = transformBoard(self.board)
         nnInput = [x["nn"] for x in validTiles]
+        tiles = [x["tile"] for x in validTiles]
         probs = self.determineProbs(nnInput)
         # NEXTTIME continue here
 
@@ -54,3 +56,40 @@ class BruteForceSolver:
             probs[i] = self.net.classifyTile(tiles[i])
         return probs
         
+if __name__ == "__main__":
+    nns = NeuralNetSolver()
+    data, labels = generateTrainingData()
+    nns.net.eval()
+    with torch.no_grad():
+        output = nns.net.forward(data)
+        mistakes = (labels != torch.argmax(output, dim=1))
+        output = output.cpu().numpy()
+        mistakes = mistakes.cpu().numpy().astype(bool)
+        labels = labels.cpu().numpy()
+        mistakePredValues = output[mistakes]
+        correctPredValues = output[~mistakes]
+        correctDiff = [abs(x[0] - x[1]) for x in correctPredValues]
+        mistakeDiff = [abs(x[0] - x[1]) for x in mistakePredValues]
+
+        print("Max correct diff:", max(correctDiff))
+        print("Max mistake diff:", max(mistakeDiff))
+        print()
+        print("Min correct diff:", min(correctDiff))
+        print("Min mistake diff:", min(mistakeDiff))
+        print()
+        print("Avg correct diff:", sum(correctDiff) / len(correctDiff))
+        print("Avg mistake diff:", sum(mistakeDiff) / len(mistakeDiff))
+        print()
+
+        #Drop values where the difference is under threshold
+        threshold = lambda x: abs(x[0] - x[1]) > CERTAINTY_THRESHOLD
+        # threshold = np.vectorize(threshold)
+        mask = [threshold(x) for x in output]
+        certainOut = output[mask] # TODO: loops bad
+        certainLabels = labels[mask] # TODO: loops bad
+        certainAcc = np.mean(certainLabels == np.argmax(certainOut, axis=1))
+        print("Thresholded accuracy:", certainAcc)
+        print("Number certain results:", certainLabels.shape)
+        print("Percentage certain results:", certainLabels.shape[0] / BATCH_SIZE)
+
+    nns.net.train()

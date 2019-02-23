@@ -85,7 +85,7 @@ def getAllSurroundingTiles(board, tile):
         surrounding = [
             [surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],],
             [surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],],
-            [surrounding[5], surrounding[0], 0, surrounding[1], surrounding[23],],
+            [surrounding[5], surrounding[0], Tile(0, -1, -1), surrounding[1], surrounding[23],],
             [surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],],
             [surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]],
             ]
@@ -136,7 +136,6 @@ def transformBoard(board):
     """ Given a board, transforms all tiles next to eplored ones into a format that the nn can take
     Returns a list of dicts with the "tile" and "nn" keys
     """
-
     # FIXME this is hideous
     out = []
     bfs = BruteForceSolver()
@@ -190,6 +189,12 @@ def generateTrainingData():
         allLabels = torch.from_numpy(allLabels)
         allTileInfo = allTileInfo.cuda()
         allLabels = allLabels.cuda()
+    elif MODEL == "2dnn":
+        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 5, 5)
+        allTileInfo = torch.from_numpy(allTileInfo).float()
+        allLabels = torch.from_numpy(allLabels)
+        allTileInfo = allTileInfo.cuda()
+        allLabels = allLabels.cuda()
     
     return allTileInfo, allLabels
 
@@ -212,3 +217,4 @@ def balanceLabels(allTileInfo, allLabels):
 if __name__ == "__main__":
     data, labels = generateTrainingData()
     print(data.shape)
+    print(data[0])
