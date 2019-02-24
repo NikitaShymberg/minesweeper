@@ -107,12 +107,12 @@ def processTile(board, tile, mode="train"):
     
     if MODEL == "nn":
         values = np.zeros((24, 12))
-        for i, tile in enumerate(surroundingTiles):
-            if tile is None:
+        for i, curTile in enumerate(surroundingTiles):
+            if curTile is None or curTile.marked:
                 values[i][0] = 1
-            elif not tile.explored:
+            elif not curTile.explored:
                 values[i][1] = 1
-            elif tile.value == BOMB:
+            elif curTile.value == BOMB:
                 values[i][2] = 1
             else:
                 if mode == "train":
@@ -123,18 +123,19 @@ def processTile(board, tile, mode="train"):
     elif MODEL == "2dnn":
         values = np.zeros((5, 5, 12))
         for i, row in enumerate(surroundingTiles):
-            for j, tile in enumerate(row):
-                if tile is None or tile.marked:
+            for j, curTile in enumerate(row):
+                if curTile is None or curTile.marked:
                     values[i][j][0] = 1
-                elif not tile.explored:
+                elif not curTile.explored:
                     values[i][j][1] = 1
-                elif tile.value == BOMB:
+                elif curTile.value == BOMB:
                     print("I SAW A BOMB?????", "*"*32) #TESTING please never print this
                     values[i][j][2] = 1
                 else:
                     if mode == "train":
-                        values[i][j][tile.value + 3] = 1
+                        values[i][j][curTile.value + 3] = 1
                     elif mode == "play":
+                        # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
                         values[i][j][tile.remainingValue + 3] = 1
 
     return values, label
@@ -224,4 +225,4 @@ def balanceLabels(allTileInfo, allLabels):
 if __name__ == "__main__":
     data, labels = generateTrainingData()
     print(data.shape)
-    print(data[0])
+    # print(data[0])

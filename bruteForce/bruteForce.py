@@ -33,7 +33,7 @@ class BruteForceSolver:
     def mark(self, row, col):
         """ Marks the tile at the row and column as a bomb and updates the remaining value of surrounding tiles """
         self.board.mark(row, col)
-        self.unmarkedBombs -= 1 # FIXME: this isn't the right way to determine if we win
+        self.unmarkedBombs -= 1
         tilesToReduce = self.getAllSurroundingTiles(Tile(0, row, col))
         for t in tilesToReduce:
             if t is not None and t.remainingValue != 0 and t.value != BOMB:
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     bfs.firstMove()
     print(bfs.board)
 
-    while bfs.unmarkedBombs > 0:
+    while bfs.unmarkedBombs > 0: # FIXME: this isn't the right way to determine if we win
         print(str(bfs.move()))
     
     print("Hooray! I won!")

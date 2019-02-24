@@ -12,6 +12,7 @@ class Board:
         self.firstMove = True
         self.correctMarks = 0
         self.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)]
+        self.setupBoard() # FIXME: REMOVEME
 
     def setupBoard(self):
         for r in range(HEIGHT):
@@ -129,13 +130,13 @@ class Board:
     def explore(self, row, col):
         """ Check the value of a cell """
         # Make the first move safe
-        if self.firstMove: # FIXME: I'm broken
+        # if self.firstMove: # FIXME: I'm broken
         #     while True:
-            self.setupBoard()
+            # self.setupBoard()
         #         if self.board[row][col].value != BOMB:
         #             # print("It's safe to explore!", row, col) # TESTING
         #             break
-            self.firstMove = False
+            # self.firstMove = False
 
         if(not self.board[row][col].explored and not self.board[row][col].marked):
             value = self.board[row][col].explore()
@@ -148,27 +149,27 @@ class Board:
             if(value == 0):
                 # Explore surrounding tiles
                 if self.left(row, col) is not None:
-                    if self.left(row, col).value == 0:
+                    if self.left(row, col).value == 0 and not self.left(row, col).marked:
                         self.explore(row, col-1)
-                    elif self.left(row, col).value != BOMB:
+                    elif self.left(row, col).value != BOMB and not self.left(row, col).marked:
                         self.left(row, col).explore()
 
                 if self.right(row, col) is not None:
-                    if self.right(row, col).value == 0:
+                    if self.right(row, col).value == 0 and not self.right(row, col).marked:
                         self.explore(row, col+1)
-                    elif self.right(row, col).value != BOMB:
+                    elif self.right(row, col).value != BOMB and not self.right(row, col).marked:
                         self.right(row, col).explore()
 
                 if self.up(row, col) is not None:
-                    if self.up(row, col).value == 0:
+                    if self.up(row, col).value == 0 and not self.up(row, col).marked:
                         self.explore(row-1, col)
-                    elif self.up(row, col).value != BOMB:
+                    elif self.up(row, col).value != BOMB and not self.up(row, col).marked:
                         self.up(row, col).explore()
 
                 if self.down(row, col) is not None:
-                    if self.down(row, col).value == 0:
+                    if self.down(row, col).value == 0 and not self.down(row, col).marked:
                         self.explore(row+1, col)
-                    elif self.down(row, col).value != BOMB:
+                    elif self.down(row, col).value != BOMB and not self.down(row, col).marked:
                         self.down(row, col).explore()
     
     def mark(self, row, col):

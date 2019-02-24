@@ -82,21 +82,42 @@ class NeuralNetSolver:
         markMove = None
         dictToList = lambda d, key: [x[key] for x in d]
         if len(explores) > 0:
-            exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
+            #TESTING: I'm not sure maybe this is cheating, this is waht it was before:
+            # exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
+            valid = False
+            while not valid and len(explores) > 0:
+                index = np.argmax(dictToList(explores, "confidence"))
+                exploreMove = explores[index]
+                surroundingTiles = self.getAllSurroundingTiles(exploreMove["tile"])
+                surroundingValues = [t.remainingValue for t in surroundingTiles if t is not None and t.explored]
+                if 0 in surroundingValues:
+                    np.delete(explores, index)
+                    print("-"*16, "Tried to make a stupid move :(", "-"*16)
+                else:
+                    valid = True
+
         if len(marks) > 0:
             markMove = marks[np.argmax(dictToList(marks, "confidence"))]
         
-        if exploreMove is not None and exploreMove["confidence"] > CERTAINTY_THRESHOLD:
+        if exploreMove is not None and exploreMove["confidence"] > MOVE_CERTAINTY_THRESHOLD:
             move = 0
             tile = exploreMove["tile"]
-        elif markMove is not None and markMove["confidence"] > CERTAINTY_THRESHOLD:
+        elif markMove is not None and markMove["confidence"] > MARK_CERTAINTY_THRESHOLD:
             move = 1
             tile = markMove["tile"]
         else:
-            # TODO:
-            move = None
-            tile = None
+            # TODO: consider unexplored tiles adjacent to validTiles ?
             print("-"*16, "I AM UNCERTAIN ABOUT THIS MOVE!", "-"*16)
+            farTiles = []
+            for r in self.board.board:
+                for tile in r:
+                    if not tile.explored:
+                        farTiles.append(tile)
+            move = 0
+            if len(farTiles) > 0:
+                tile = np.random.choice(farTiles)
+            else:
+                tile = exploreMove["tile"]
 
         print("Chosen tile:", tile.row, tile.col)
         print("Chosen move:", "Mark" if move == 1 else "Explore")
