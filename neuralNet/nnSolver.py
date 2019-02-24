@@ -62,19 +62,28 @@ class NeuralNetSolver:
             # If there is a move that is over the threshold pick the max move
             # If there isn't then mark something that is over the threshold
             # Else explore far away
-        # TODO: Sometimes explore other places
+        # FIXME: remaining value is borked asf as well
         validTiles = transformBoard(self.board)
         nnInput = [x["nn"] for x in validTiles]
         tiles = [x["tile"] for x in validTiles]
-        probs = self.determineProbs(torch.Tensor(nnInput))
+        probs = self.determineProbs(torch.Tensor(nnInput)).cpu().numpy()
         confidence = [abs(x[0] - x[1]) for x in probs]
+
+        isExplore = lambda x: x[0] > x[1]
+        isExplore = np.vectorize(isExplore)
+        explores = np.where(isExplore(probs))
+        # marks = validTiles[~isExplore]
+        print("EXPLORE:", explores)
+        print("MARK", marks)
+
+
         index = np.argmax(confidence)
         tile = tiles[index]
         move = 0 if probs[index][0] > probs[index][1] else 1 # 0 - explore, 1 - bomb
 
         if abs(probs[index][0] - probs[index][1]) < CERTAINTY_THRESHOLD:
             print("-"*16, "I AM UNCERTAIN ABOUT THIS MOVE!", "-"*16)
-        print("Chosen tile:", tile.row, ",", tile.col)
+        print("Chosen tile:", tile.row, tile.col)
         print("Chosen move:", "Mark" if move == 1 else "Explore")
         if move == 1:
             # FIXME:? make sure it's not yet marked
@@ -86,6 +95,9 @@ class NeuralNetSolver:
         
 
     def determineProbs(self, tiles):
+        """ Returns the output of the nn on the given tiles 
+            As well as a mask for the explores and marks
+        """
         tiles = tiles.view((-1, 12, 5, 5)).cuda()
         probs = self.net.classifyTiles(tiles)
         return probs

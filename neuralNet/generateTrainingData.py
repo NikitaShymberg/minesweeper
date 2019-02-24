@@ -155,7 +155,7 @@ def transformBoard(board):
             "nn": processedTile
         })
     
-    return out
+    return np.array(out)
 
 
 def exploreSafeTile(board):

@@ -127,10 +127,10 @@ class Board:
     def explore(self, row, col):
         """ Check the value of a cell """
         # Make the first move safe
-        if self.firstMove:
+        if self.firstMove: # FIXME: I'm broken
             while True:
                 self.setupBoard()
-                if self.board[row][col] != BOMB:
+                if self.board[row][col].value != BOMB:
                     print("It's safe to explore!", row, col)
                     break
             self.firstMove = False
