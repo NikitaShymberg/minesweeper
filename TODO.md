@@ -6,8 +6,7 @@
    1. Get rid of as many appends as you can
 5. Refactor some things
 6. LINT!!
-7. Try nn with 1 conv layer
-8. Try nn with only like 10 linear layers
+7. Optional cuda
 
 Generating data:
     Make a board with a bunch of bombs

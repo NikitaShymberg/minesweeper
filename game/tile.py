@@ -5,6 +5,7 @@ class Tile:
         self.explored = False
         self.marked = False
         self.value = value
+        self.remainingValue = value
         self.row = row
         self.col = col
     

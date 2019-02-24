@@ -59,10 +59,13 @@ class miniNet(nn.Module):
         self.train()
         return loss, accs
     
-    def classifyTile(self, data):
+    def classifyTiles(self, data):
         self.eval()
+        # data.view(1, )
         with torch.no_grad():
-            return self.forward(data) # FIXME: does this work with one thing at a time?
+            result = self.forward(data) # FIXME: does this work with one thing at a time?
+        self.train()
+        return result
     
     def save(self, epoch, optimizer):
         torch.save({

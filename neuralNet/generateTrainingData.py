@@ -93,7 +93,7 @@ def getAllSurroundingTiles(board, tile):
     return surrounding
 
 # Labels: 0 --> safe, 1 --> bomb
-def processTile(board, tile):
+def processTile(board, tile, mode="train"):
     """
     Returns a list of the values of the 5x5 grid of surrounding tiles excluding the cetre tile
     As well as the label for the centre tile
@@ -115,7 +115,10 @@ def processTile(board, tile):
             elif tile.value == BOMB:
                 values[i][2] = 1
             else:
-                values[i][tile.value + 3] = 1
+                if mode == "train":
+                    values[i][tile.value + 3] = 1
+                elif mode == "play":
+                    values[i][tile.remainingValue + 3] = 1
 
     elif MODEL == "2dnn":
         values = np.zeros((5, 5, 12))
@@ -128,7 +131,11 @@ def processTile(board, tile):
                 elif tile.value == BOMB:
                     values[i][j][2] = 1
                 else:
-                    values[i][j][tile.value + 3] = 1
+                    if mode == "train":
+                        values[i][j][tile.value + 3] = 1
+                    elif mode == "play":
+                        print("Remaining value:", tile.remainingValue, "at", tile.row, tile.col) # TESTING
+                        values[i][j][tile.remainingValue + 3] = 1
 
     return values, label
 
@@ -142,7 +149,7 @@ def transformBoard(board):
     bfs.board = board
     tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
     for tile in tilesToConsider:
-        processedTile, _ = processTile(board, tile)
+        processedTile, _ = processTile(board, tile, mode="play")
         out.append({
             "tile": tile,
             "nn": processedTile

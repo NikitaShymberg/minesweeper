@@ -7,14 +7,16 @@ from random import randint
 from game.tile import Tile
 
 class Board:
-    board = []
-    correctMarks = 0
 
     def __init__(self):
+        self.firstMove = True
+        self.correctMarks = 0
         self.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)]
-        self.setupBoard()
 
     def setupBoard(self):
+        for r in range(HEIGHT):
+            for c in range(WIDTH):
+                self.board[r][c].value = 0
         setBombs = 0
         # NOTE: might be slow if bomb dense
         while(setBombs < MAX_BOMBS):
@@ -124,6 +126,15 @@ class Board:
     
     def explore(self, row, col):
         """ Check the value of a cell """
+        # Make the first move safe
+        if self.firstMove:
+            while True:
+                self.setupBoard()
+                if self.board[row][col] != BOMB:
+                    print("It's safe to explore!", row, col)
+                    break
+            self.firstMove = False
+
         if(not self.board[row][col].explored and not self.board[row][col].marked):
             value = self.board[row][col].explore()
 

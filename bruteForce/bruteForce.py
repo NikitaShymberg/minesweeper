@@ -25,11 +25,6 @@ class BruteForceSolver:
         
         self.board = Board()
         self.unmarkedBombs = MAX_BOMBS
-
-        # Set up remainingValue to be reduced whenever a bomb is marked
-        for i, r in enumerate(self.board.board):
-            for j, _ in enumerate(r):
-                self.board.board[i][j].remainingValue = self.board.board[i][j].value
     
     def firstMove(self):
         # TODO: smartify and cite
@@ -38,10 +33,10 @@ class BruteForceSolver:
     def mark(self, row, col):
         """ Marks the tile at the row and column as a bomb and updates the remaining value of surrounding tiles """
         self.board.mark(row, col)
-        self.unmarkedBombs -= 1
+        self.unmarkedBombs -= 1 # FIXME: this isn't the right way to determine if we win
         tilesToReduce = self.getAllSurroundingTiles(Tile(0, row, col))
         for t in tilesToReduce:
-            if t is not None and t.value != 0 and t.value != BOMB:
+            if t is not None and t.remainingValue != 0 and t.value != BOMB:
                 self.board.board[t.row][t.col].remainingValue -= 1
 
     def move(self):
