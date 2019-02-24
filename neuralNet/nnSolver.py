@@ -54,10 +54,11 @@ class NeuralNetSolver:
         self.unmarkedBombs -= 1
         tilesToReduce = self.getAllSurroundingTiles(Tile(0, row, col))
         for t in tilesToReduce:
-            if t is not None and t.remainingValue != 0 and t.value != BOMB:
+            if t is not None and t.remainingValue > 0 and t.value != BOMB:
                 self.board.board[t.row][t.col].remainingValue -= 1
     
     def move(self):
+        # TODO: clean/reafactor
         # TODO: prioritize exploring so that we don't overmark as much
             # If there is a move that is over the threshold pick the max move
             # If there isn't then mark something that is over the threshold
@@ -68,25 +69,38 @@ class NeuralNetSolver:
         tiles = [x["tile"] for x in validTiles]
         probs = self.determineProbs(torch.Tensor(nnInput)).cpu().numpy()
         confidence = [abs(x[0] - x[1]) for x in probs]
+        for i in range(len(confidence)):
+            validTiles[i]["confidence"] = confidence[i]
 
         isExplore = lambda x: x[0] > x[1]
-        isExplore = np.vectorize(isExplore)
-        explores = np.where(isExplore(probs))
-        # marks = validTiles[~isExplore]
-        print("EXPLORE:", explores)
-        print("MARK", marks)
-
-
-        index = np.argmax(confidence)
-        tile = tiles[index]
-        move = 0 if probs[index][0] > probs[index][1] else 1 # 0 - explore, 1 - bomb
-
-        if abs(probs[index][0] - probs[index][1]) < CERTAINTY_THRESHOLD:
+        explores = np.array([isExplore(x) for x in probs])
+        marks = ~explores
+        explores = validTiles[explores]
+        marks = validTiles[marks]
+        
+        exploreMove = None
+        markMove = None
+        dictToList = lambda d, key: [x[key] for x in d]
+        if len(explores) > 0:
+            exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
+        if len(marks) > 0:
+            markMove = marks[np.argmax(dictToList(marks, "confidence"))]
+        
+        if exploreMove is not None and exploreMove["confidence"] > CERTAINTY_THRESHOLD:
+            move = 0
+            tile = exploreMove["tile"]
+        elif markMove is not None and markMove["confidence"] > CERTAINTY_THRESHOLD:
+            move = 1
+            tile = markMove["tile"]
+        else:
+            # TODO:
+            move = None
+            tile = None
             print("-"*16, "I AM UNCERTAIN ABOUT THIS MOVE!", "-"*16)
+
         print("Chosen tile:", tile.row, tile.col)
         print("Chosen move:", "Mark" if move == 1 else "Explore")
         if move == 1:
-            # FIXME:? make sure it's not yet marked
             self.mark(tile.row, tile.col)
         else:
             self.board.explore(tile.row, tile.col)
@@ -105,7 +119,7 @@ class NeuralNetSolver:
 if __name__ == "__main__":
     nns = NeuralNetSolver()
     print(nns.firstMove())
-    while nns.unmarkedBombs > 0:
+    while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
         print(nns.move())
 
 

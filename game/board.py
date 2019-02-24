@@ -34,7 +34,9 @@ class Board:
     def updateCounts(self, row, col):
         """ Given a cell, update its value """
         if(self.board[row][col].value != BOMB):
-            self.board[row][col].value = self.countBombs(row, col)
+            val = self.countBombs(row, col)
+            self.board[row][col].value = val
+            self.board[row][col].remainingValue = val
 
     def countBombs(self, r, c):
         """ Count the number of bombs around the cell """
@@ -128,11 +130,11 @@ class Board:
         """ Check the value of a cell """
         # Make the first move safe
         if self.firstMove: # FIXME: I'm broken
-            while True:
-                self.setupBoard()
-                if self.board[row][col].value != BOMB:
-                    print("It's safe to explore!", row, col)
-                    break
+        #     while True:
+            self.setupBoard()
+        #         if self.board[row][col].value != BOMB:
+        #             # print("It's safe to explore!", row, col) # TESTING
+        #             break
             self.firstMove = False
 
         if(not self.board[row][col].explored and not self.board[row][col].marked):

@@ -124,17 +124,17 @@ def processTile(board, tile, mode="train"):
         values = np.zeros((5, 5, 12))
         for i, row in enumerate(surroundingTiles):
             for j, tile in enumerate(row):
-                if tile is None:
+                if tile is None or tile.marked:
                     values[i][j][0] = 1
                 elif not tile.explored:
                     values[i][j][1] = 1
                 elif tile.value == BOMB:
+                    print("I SAW A BOMB?????", "*"*32) #TESTING please never print this
                     values[i][j][2] = 1
                 else:
                     if mode == "train":
                         values[i][j][tile.value + 3] = 1
                     elif mode == "play":
-                        print("Remaining value:", tile.remainingValue, "at", tile.row, tile.col) # TESTING
                         values[i][j][tile.remainingValue + 3] = 1
 
     return values, label

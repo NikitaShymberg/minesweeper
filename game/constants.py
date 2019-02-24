@@ -11,4 +11,4 @@ REG = 2e-6
 CHECKPOINT_FILE = "runs/checkpoint.pth"
 BEST_FILE = "runs/best.pth"
 MODEL = "2dnn"
-CERTAINTY_THRESHOLD = 2
+CERTAINTY_THRESHOLD = 2.5
