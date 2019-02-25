@@ -75,7 +75,10 @@ class miniNet(nn.Module):
         }, CHECKPOINT_FILE)
     
     def load(self, optimizer):
-        checkpoint = torch.load(CHECKPOINT_FILE)
+        if torch.cuda.is_available():
+            checkpoint = torch.load(CHECKPOINT_FILE)
+        else:
+            checkpoint = torch.load(CHECKPOINT_FILE, map_location=lambda storage, loc: storage)
         self.load_state_dict(checkpoint["state"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         return checkpoint["epoch"]
@@ -83,7 +86,10 @@ class miniNet(nn.Module):
     
 if __name__ == "__main__":
 
-    mini = miniNet().cuda()
+    if torch.cuda.is_available():
+        mini = miniNet().cuda()
+    else:
+        mini = miniNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(mini.parameters(), lr=LR, weight_decay=REG)
     if os.path.isfile(CHECKPOINT_FILE):

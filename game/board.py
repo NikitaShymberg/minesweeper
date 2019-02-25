@@ -130,13 +130,10 @@ class Board:
     def explore(self, row, col):
         """ Check the value of a cell """
         # Make the first move safe
-        # if self.firstMove: # FIXME: I'm broken
-        #     while True:
-            # self.setupBoard()
-        #         if self.board[row][col].value != BOMB:
-        #             # print("It's safe to explore!", row, col) # TESTING
-        #             break
-            # self.firstMove = False
+        if self.firstMove:
+            while self.board[row][col].value == BOMB:
+                self.setupBoard()
+            self.firstMove = False
 
         if(not self.board[row][col].explored and not self.board[row][col].marked):
             value = self.board[row][col].explore()
@@ -171,6 +168,30 @@ class Board:
                         self.explore(row+1, col)
                     elif self.down(row, col).value != BOMB and not self.down(row, col).marked:
                         self.down(row, col).explore()
+
+                if self.upLeft(row, col) is not None:
+                    if self.upLeft(row, col).value == 0 and not self.upLeft(row, col).marked:
+                        self.explore(row-1, col-1)
+                    elif self.upLeft(row, col).value != BOMB and not self.upLeft(row, col).marked:
+                        self.upLeft(row, col).explore()
+
+                if self.upRight(row, col) is not None:
+                    if self.upRight(row, col).value == 0 and not self.upRight(row, col).marked:
+                        self.explore(row-1, col+1)
+                    elif self.upRight(row, col).value != BOMB and not self.upRight(row, col).marked:
+                        self.upRight(row, col).explore()
+
+                if self.downLeft(row, col) is not None:
+                    if self.downLeft(row, col).value == 0 and not self.downLeft(row, col).marked:
+                        self.explore(row+1, col-1)
+                    elif self.downLeft(row, col).value != BOMB and not self.downLeft(row, col).marked:
+                        self.downLeft(row, col).explore()
+
+                if self.downRight(row, col) is not None:
+                    if self.downRight(row, col).value == 0 and not self.downRight(row, col).marked:
+                        self.explore(row+1, col+1)
+                    elif self.downRight(row, col).value != BOMB and not self.downRight(row, col).marked:
+                        self.downRight(row, col).explore()
     
     def mark(self, row, col):
         """ Mark the tile as a bomb and update the number of correctly found bombs """

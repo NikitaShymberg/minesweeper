@@ -84,7 +84,10 @@ class miniNet(nn.Module):
 
     
 if __name__ == "__main__":
-    mini = miniNet().cuda()
+    if torch.cuda.is_available():
+        mini = miniNet().cuda()
+    else:
+        mini = miniNet()
     # print(mini)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(mini.parameters(), lr=LR, weight_decay=REG)

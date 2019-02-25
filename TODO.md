@@ -6,7 +6,9 @@
    1. Get rid of as many appends as you can
 5. Refactor some things
 6. LINT!!
-7. Optional cuda
+7. Train it on custom data
+   2. Certain bomb setups for 1, 2, 3, 4, ... Overfit these hella
+   3. Fully/mostly explored? That's where it dies a lot?
 
 Generating data:
     Make a board with a bunch of bombs

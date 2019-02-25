@@ -20,7 +20,11 @@ class NeuralNetSolver:
     def __init__(self):
         self.board = Board()
         self.unmarkedBombs = MAX_BOMBS
-        self.net = miniNet().cuda()
+        if torch.cuda.is_available():
+            self.net = miniNet().cuda()
+        else:
+            self.net = miniNet()
+            
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=LR, weight_decay=REG)
         self.net.load(self.optimizer) # TODO: ensure this works
     
@@ -82,22 +86,23 @@ class NeuralNetSolver:
         markMove = None
         dictToList = lambda d, key: [x[key] for x in d]
         if len(explores) > 0:
-            #TESTING: I'm not sure maybe this is cheating, this is waht it was before:
-            # exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
-            valid = False
-            while not valid and len(explores) > 0:
-                index = np.argmax(dictToList(explores, "confidence"))
-                exploreMove = explores[index]
-                surroundingTiles = self.getAllSurroundingTiles(exploreMove["tile"])
-                surroundingValues = [t.remainingValue for t in surroundingTiles if t is not None and t.explored]
-                if 0 in surroundingValues:
-                    np.delete(explores, index)
-                    print("-"*16, "Tried to make a stupid move :(", "-"*16)
-                else:
-                    valid = True
+            exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
 
         if len(marks) > 0:
-            markMove = marks[np.argmax(dictToList(marks, "confidence"))]
+            # TESTING: I'm not sure maybe this is cheating, this is waht it was before:
+            # markMove = marks[np.argmax(dictToList(marks, "confidence"))]
+            # TODO: maybe cheat more and straight up explore the tile
+            valid = False
+            while not valid and len(marks) > 0:
+                index = np.argmax(dictToList(marks, "confidence"))
+                markMove = marks[index]
+                surroundingTiles = self.getAllSurroundingTiles(markMove["tile"])
+                surroundingValues = [t.remainingValue for t in surroundingTiles if t is not None and t.explored]
+                if 0 in surroundingValues:
+                    marks = np.delete(marks, index)
+                    print("-"*16, "Tried to make a stupid move :(", "-"*16, ":", "MARK:", markMove["tile"].row, markMove["tile"].col)
+                else:
+                    valid = True
         
         if exploreMove is not None and exploreMove["confidence"] > MOVE_CERTAINTY_THRESHOLD:
             move = 0
@@ -133,7 +138,11 @@ class NeuralNetSolver:
         """ Returns the output of the nn on the given tiles 
             As well as a mask for the explores and marks
         """
-        tiles = tiles.view((-1, 12, 5, 5)).cuda()
+        if torch.cuda.is_available():
+            tiles = tiles.view((-1, 12, 5, 5)).cuda()
+        else:
+            tiles = tiles.view((-1, 12, 5, 5))
+
         probs = self.net.classifyTiles(tiles)
         return probs
         

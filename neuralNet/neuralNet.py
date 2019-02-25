@@ -87,7 +87,10 @@ if __name__ == "__main__":
         REG = reg[trial]
         LR = lr[trial]
 
-        mini = miniNet().cuda()
+        if torch.cuda.is_available():
+            mini = miniNet().cuda()
+        else:
+            mini = miniNet()
         # print(mini)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(mini.parameters(), lr=LR, weight_decay=REG)

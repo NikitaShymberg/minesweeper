@@ -11,5 +11,5 @@ REG = 2e-6
 CHECKPOINT_FILE = "runs/checkpoint.pth"
 BEST_FILE = "runs/best.pth"
 MODEL = "2dnn"
-MOVE_CERTAINTY_THRESHOLD = 5 # TODO: determine me!
+MOVE_CERTAINTY_THRESHOLD = 3 # TODO: determine me!
 MARK_CERTAINTY_THRESHOLD = 8 # TODO: determine me!

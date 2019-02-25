@@ -195,14 +195,16 @@ def generateTrainingData():
         allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 24)
         allTileInfo = torch.from_numpy(allTileInfo).float()
         allLabels = torch.from_numpy(allLabels)
-        allTileInfo = allTileInfo.cuda()
-        allLabels = allLabels.cuda()
+        if torch.cuda.is_available():
+            allTileInfo = allTileInfo.cuda()
+            allLabels = allLabels.cuda()
     elif MODEL == "2dnn":
         allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 5, 5)
         allTileInfo = torch.from_numpy(allTileInfo).float()
         allLabels = torch.from_numpy(allLabels)
-        allTileInfo = allTileInfo.cuda()
-        allLabels = allLabels.cuda()
+        if torch.cuda.is_available():
+            allTileInfo = allTileInfo.cuda()
+            allLabels = allLabels.cuda()
     
     return allTileInfo, allLabels
 
