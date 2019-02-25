@@ -8,7 +8,37 @@
 6. LINT!!
 7. Train it on custom data
    2. Certain bomb setups for 1, 2, 3, 4, ... Overfit these hella
-   3. Fully/mostly explored? That's where it dies a lot?
+        E E E + +
+        E 1 E + +
+        E E * + +
+        + + + + +
+        + + + + +
+        
+        + E E E +
+        + E 1 E +
+        + E * E +
+        + + + + +
+        + + + + +
+        
+        E E E + +
+        E 2 E + +
+        E * * + +
+        + + + + +
+        + + + + +
+        
+        E E E + +
+        E 3 * + +
+        E * * + +
+        + + + + +
+        + + + + +
+        
+        E E * + +
+        E 4 * + +
+        E * * + +
+        + + + + +
+        + + + + +
+        
+   1. Fully/mostly explored? That's where it dies a lot?
 
 Generating data:
     Make a board with a bunch of bombs

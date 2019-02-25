@@ -224,6 +224,12 @@ def balanceLabels(allTileInfo, allLabels):
     
     return allTileInfo, allLabels
 
+def generateCertainBombs(n):
+    board = Board()
+    for i in range(3):
+        for j in range(3):
+            board.board[i][j].value = BOMB
+
 if __name__ == "__main__":
     data, labels = generateTrainingData()
     print(data.shape)
