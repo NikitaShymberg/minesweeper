@@ -11,6 +11,8 @@ import h5py
 import torch
 import numpy as np
 from random import randrange
+from itertools import permutations
+
 
 def getAllSurroundingTiles(board, tile):
     """ Returns a list of the 5x5 grid of surrounding tiles any invalid tile is None """
@@ -81,7 +83,7 @@ def getAllSurroundingTiles(board, tile):
             surrounding[15], surrounding[14], surrounding[3], surrounding[18], surrounding[22],
             surrounding[16], surrounding[17], surrounding[19], surrounding[20], surrounding[21]
             ]
-    elif MODEL == "2dnn":
+    elif MODEL == "2dnn" or MODEL == "2dnnNEW":
         surrounding = [
             [surrounding[7], surrounding[8], surrounding[9], surrounding[11], surrounding[12],],
             [surrounding[6], surrounding[4], surrounding[2], surrounding[10], surrounding[13],],
@@ -137,6 +139,27 @@ def processTile(board, tile, mode="train"):
                     elif mode == "play":
                         # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
                         values[i][j][tile.remainingValue + 3] = 1
+    
+    # TESTING
+    # One hot format:
+    # [
+    #     [isTile/0, isUnexplored, 1, 2, 3, 4, 5, 6, 7, 8], ...
+    # ]
+    elif MODEL == "2dnnNEW":
+        values = np.zeros((5, 5, 10))
+        for i, row in enumerate(surroundingTiles):
+            for j, curTile in enumerate(row):
+                if curTile is None or curTile.marked or (curTile.explored and curTile.value == 0):
+                    values[i][j][0] = 1
+                elif not curTile.explored:
+                    values[i][j][1] = 1
+                else:
+                    if mode == "train":
+                        values[i][j][curTile.value + 1] = 1
+                    elif mode == "play":
+                        # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
+                        values[i][j][tile.remainingValue + 1] = 1
+
 
     return values, label
 
@@ -162,22 +185,27 @@ def transformBoard(board):
 def exploreSafeTile(board):
     """ Explores a tile that is not a bomb """
     foundSafeTile = False
-    while not foundSafeTile:
+    i = 0
+    while not foundSafeTile and i < 50:
+        i += 1
         row = randrange(len(board.board))
         col = randrange(len(board.board[row]))
-        if board.board[row][col].value != BOMB:
+        if board.board[row][col].value != BOMB and not board.board[row][col].explored:
             foundSafeTile = True
     
-    board.explore(row, col)
+    if i < 50:
+        board.explore(row, col)
 
 def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
     allTileInfo = []
     allLabels = []
+    numMoves = 0
 
     while len(allLabels) < 2.5 * BATCH_SIZE:
+        numMoves = (numMoves + 1) % 16
         board = Board()
-        for _ in range(17):
+        for _ in range(numMoves):
             exploreSafeTile(board)
         
         # FIXME this is hideous
@@ -193,19 +221,17 @@ def generateTrainingData():
     allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
     if MODEL == "nn":
         allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 24)
-        allTileInfo = torch.from_numpy(allTileInfo).float()
-        allLabels = torch.from_numpy(allLabels)
-        if torch.cuda.is_available():
-            allTileInfo = allTileInfo.cuda()
-            allLabels = allLabels.cuda()
     elif MODEL == "2dnn":
         allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 5, 5)
-        allTileInfo = torch.from_numpy(allTileInfo).float()
-        allLabels = torch.from_numpy(allLabels)
-        if torch.cuda.is_available():
-            allTileInfo = allTileInfo.cuda()
-            allLabels = allLabels.cuda()
-    
+    elif MODEL == "2dnnNEW":
+        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 10, 5, 5)
+
+    allTileInfo = torch.from_numpy(allTileInfo).float()
+    allLabels = torch.from_numpy(allLabels)
+    if torch.cuda.is_available():
+        allTileInfo = allTileInfo.cuda()
+        allLabels = allLabels.cuda()
+
     return allTileInfo, allLabels
 
 def balanceLabels(allTileInfo, allLabels):
@@ -224,13 +250,18 @@ def balanceLabels(allTileInfo, allLabels):
     
     return allTileInfo, allLabels
 
-def generateCertainBombs(n):
-    board = Board()
-    for i in range(3):
-        for j in range(3):
-            board.board[i][j].value = BOMB
+# def generateCertainBombs():
+#     WIDTH = 5
+#     HEIGHT = 5
+#     board = Board() # TODO: make sure it's actually 5x5
+#     board.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)] #Reset
+#     for numBombs in range(1, 9):
+#         board.board[2][2].value = BOMB
+#         for  
 
 if __name__ == "__main__":
-    data, labels = generateTrainingData()
-    print(data.shape)
-    # print(data[0])
+    # board = Board()
+    # for _ in range(10):
+    #     exploreSafeTile(board)
+    # print(board)
+    generateTrainingData()

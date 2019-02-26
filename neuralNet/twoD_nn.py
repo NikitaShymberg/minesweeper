@@ -20,7 +20,8 @@ from tensorboardX import SummaryWriter
 class miniNet(nn.Module):
     def __init__(self):
         super(miniNet, self).__init__()
-        self.conv1 = nn.Conv2d(12, 500, 3)
+        inputSize = 10 if MODEL == "2dnnNEW" else 12
+        self.conv1 = nn.Conv2d(inputSize, 500, 3)
         self.conv2 = nn.Conv2d(500, 500, 3)
         self.lin3 = nn.Linear(500 * 1, 2)
     
@@ -85,7 +86,38 @@ class miniNet(nn.Module):
 
     
 if __name__ == "__main__":
+    
+    # TESTING
+    # net = miniNet().cuda()
+    # optimizer = torch.optim.Adam(net.parameters(), lr=LR, weight_decay=REG)
+    # net.load(optimizer)
+    # criterion = nn.CrossEntropyLoss()
+    # data, labels = generateTrainingData()
+    # net.eval()
+    # with torch.no_grad():
+    #     output = net.forward(data)
+    #     mistakes = (labels != torch.argmax(output, dim=1))
+    #     output = output.cpu().numpy()
+    #     mistakes = mistakes.cpu().numpy().astype(bool)
+    #     labels = labels.cpu().numpy()
+    #     mistakePredValues = output[mistakes]
+    #     correctPredValues = output[~mistakes]
+    #     data = data.cpu().numpy()
+    #     for q in range(10):
+    #         print("Predicted value:", mistakePredValues[q])
+    #         print("Data:")
+    #         values = np.zeros((5, 5))
+    #         for i, row in enumerate(data[q].reshape(5, 5, 10)):
+    #             for j, val in enumerate(row):
+    #                 values[i][j] = np.where(val == 1)[0]
+    #                 if values[i][j] > 1:
+    #                     values[i][j] -= 1
+    #                 elif values[i][j] == 1:
+    #                     values[i][j] = 9
+    #         print(values)
+    # net.train()
 
+    # TESTING
     if torch.cuda.is_available():
         mini = miniNet().cuda()
     else:
@@ -123,5 +155,3 @@ if __name__ == "__main__":
     val_loss, val_acc = mini.test(val_data, val_labels, criterion)
     print("FINAL Validation Loss", val_loss.item())
     print("FINAL Validation Accuracy", val_acc.item())
-
-

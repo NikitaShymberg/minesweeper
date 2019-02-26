@@ -26,7 +26,7 @@ class NeuralNetSolver:
             self.net = miniNet()
             
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=LR, weight_decay=REG)
-        self.net.load(self.optimizer) # TODO: ensure this works
+        self.net.load(self.optimizer)
     
     def firstMove(self):
         # TODO: smartify and cite
@@ -63,11 +63,7 @@ class NeuralNetSolver:
     
     def move(self):
         # TODO: clean/reafactor
-        # TODO: prioritize exploring so that we don't overmark as much
-            # If there is a move that is over the threshold pick the max move
-            # If there isn't then mark something that is over the threshold
-            # Else explore far away
-        # FIXME: remaining value is borked asf as well
+        # TODO: Might need to unmark sometimes..
         validTiles = transformBoard(self.board)
         nnInput = [x["nn"] for x in validTiles]
         tiles = [x["tile"] for x in validTiles]
@@ -81,6 +77,14 @@ class NeuralNetSolver:
         marks = ~explores
         explores = validTiles[explores]
         marks = validTiles[marks]
+
+        # TESTING
+        print("EXPLORES:")
+        for e in explores:
+            print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
+        print("MARKS:")
+        for e in marks:
+            print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
         
         exploreMove = None
         markMove = None
@@ -91,7 +95,6 @@ class NeuralNetSolver:
         if len(marks) > 0:
             # TESTING: I'm not sure maybe this is cheating, this is waht it was before:
             # markMove = marks[np.argmax(dictToList(marks, "confidence"))]
-            # TODO: maybe cheat more and straight up explore the tile
             valid = False
             while not valid and len(marks) > 0:
                 index = np.argmax(dictToList(marks, "confidence"))
@@ -101,13 +104,19 @@ class NeuralNetSolver:
                 if 0 in surroundingValues:
                     marks = np.delete(marks, index)
                     print("-"*16, "Tried to make a stupid move :(", "-"*16, ":", "MARK:", markMove["tile"].row, markMove["tile"].col)
+                    # TESTING: ultra cheating?
+                    print("Instead I will", "Explore:", markMove["tile"].row, markMove["tile"].col)
+                    self.board.explore(markMove["tile"].row, markMove["tile"].col)
+                    return self.board
                 else:
                     valid = True
-        
-        if exploreMove is not None and exploreMove["confidence"] > MOVE_CERTAINTY_THRESHOLD:
+
+        exploredProportion = EXPLORE_COEFF * self.getExploredProportion() # TODO: Maybe more like how explored is an area?
+
+        if exploreMove is not None and exploreMove["confidence"] > MOVE_CERTAINTY_THRESHOLD * exploredProportion: # TODO: explore more in the early game, mark late game
             move = 0
             tile = exploreMove["tile"]
-        elif markMove is not None and markMove["confidence"] > MARK_CERTAINTY_THRESHOLD:
+        elif markMove is not None and markMove["confidence"] > MARK_CERTAINTY_THRESHOLD / exploredProportion:
             move = 1
             tile = markMove["tile"]
         else:
@@ -116,7 +125,7 @@ class NeuralNetSolver:
             farTiles = []
             for r in self.board.board:
                 for tile in r:
-                    if not tile.explored:
+                    if not tile.explored and tile not in dictToList(validTiles, "tile"):
                         farTiles.append(tile)
             move = 0
             if len(farTiles) > 0:
@@ -126,22 +135,39 @@ class NeuralNetSolver:
 
         print("Chosen tile:", tile.row, tile.col)
         print("Chosen move:", "Mark" if move == 1 else "Explore")
+        print("Certainty:", markMove["confidence"] if move == 1 else exploreMove["confidence"])
+        print("Thresholds: Explore", MOVE_CERTAINTY_THRESHOLD * exploredProportion, "Mark", MARK_CERTAINTY_THRESHOLD / exploredProportion)
         if move == 1:
             self.mark(tile.row, tile.col)
         else:
             self.board.explore(tile.row, tile.col)
         
         return self.board
-        
+
+    def getExploredProportion(self):
+        numExplored = 0
+        numUnexplored = 0
+        for r in self.board.board:
+            for t in r:
+                if t.explored:
+                    numExplored += 1
+                else:
+                    numUnexplored += 1
+        return numExplored / numUnexplored        
 
     def determineProbs(self, tiles):
         """ Returns the output of the nn on the given tiles 
             As well as a mask for the explores and marks
         """
+        if MODEL == "2dnn":
+            input = 12
+        if MODEL == "2dnnNEW":
+            input = 10
+
         if torch.cuda.is_available():
-            tiles = tiles.view((-1, 12, 5, 5)).cuda()
+            tiles = tiles.view((-1, input, 5, 5)).cuda()
         else:
-            tiles = tiles.view((-1, 12, 5, 5))
+            tiles = tiles.view((-1, input, 5, 5))
 
         probs = self.net.classifyTiles(tiles)
         return probs

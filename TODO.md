@@ -6,39 +6,8 @@
    1. Get rid of as many appends as you can
 5. Refactor some things
 6. LINT!!
-7. Train it on custom data
-   2. Certain bomb setups for 1, 2, 3, 4, ... Overfit these hella
-        E E E + +
-        E 1 E + +
-        E E * + +
-        + + + + +
-        + + + + +
-        
-        + E E E +
-        + E 1 E +
-        + E * E +
-        + + + + +
-        + + + + +
-        
-        E E E + +
-        E 2 E + +
-        E * * + +
-        + + + + +
-        + + + + +
-        
-        E E E + +
-        E 3 * + +
-        E * * + +
-        + + + + +
-        + + + + +
-        
-        E E * + +
-        E 4 * + +
-        E * * + +
-        + + + + +
-        + + + + +
-        
-   1. Fully/mostly explored? That's where it dies a lot?
+7. Check what kinds of mistakes it makes
+8. Play around with thresholds on trainingData
 
 Generating data:
     Make a board with a bunch of bombs
