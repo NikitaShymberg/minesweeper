@@ -7,7 +7,6 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import *
 from bruteForce.bruteForce import BruteForceSolver # TODO: that's kidna gross 
-import h5py
 import torch
 import numpy as np
 from random import randrange
@@ -140,25 +139,24 @@ def processTile(board, tile, mode="train"):
                         # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
                         values[i][j][tile.remainingValue + 3] = 1
     
-    # TESTING
+    # TESTING TODO: I don't think combining the 0 thing is was a good idea
     # One hot format:
     # [
     #     [isTile/0, isUnexplored, 1, 2, 3, 4, 5, 6, 7, 8], ...
     # ]
     elif MODEL == "2dnnNEW":
-        values = np.zeros((5, 5, 10))
+        values = np.zeros((5, 5, 11))
         for i, row in enumerate(surroundingTiles):
             for j, curTile in enumerate(row):
-                if curTile is None or curTile.marked or (curTile.explored and curTile.value == 0):
+                if curTile is None or curTile.marked:
                     values[i][j][0] = 1
                 elif not curTile.explored:
                     values[i][j][1] = 1
                 else:
                     if mode == "train":
-                        values[i][j][curTile.value + 1] = 1
+                        values[i][j][curTile.value + 2] = 1
                     elif mode == "play":
-                        # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
-                        values[i][j][tile.remainingValue + 1] = 1
+                        values[i][j][tile.remainingValue + 2] = 1
 
 
     return values, label
@@ -212,10 +210,16 @@ def generateTrainingData():
         bfs = BruteForceSolver()
         bfs.board = board
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
+        tilesToConsider = filterBadTiles(tilesToConsider, board, bfs) # TESTING
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
             allTileInfo.append(tileInfo)
+            allTileInfo.append(np.fliplr(tileInfo))
+            allTileInfo.append(np.flipud(tileInfo))
+            allTileInfo.append(np.rot90(tileInfo, 1, axes=(0,1)))
+            allTileInfo.append(np.rot90(tileInfo, 2, axes=(0,1)))
+            allTileInfo.append(np.rot90(tileInfo, 3, axes=(0,1)))
             allLabels.append(label)
     
     allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
@@ -224,7 +228,7 @@ def generateTrainingData():
     elif MODEL == "2dnn":
         allTileInfo = allTileInfo.reshape(BATCH_SIZE, 12, 5, 5)
     elif MODEL == "2dnnNEW":
-        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 10, 5, 5)
+        allTileInfo = allTileInfo.reshape(BATCH_SIZE, 11, 5, 5)
 
     allTileInfo = torch.from_numpy(allTileInfo).float()
     allLabels = torch.from_numpy(allLabels)
@@ -233,6 +237,19 @@ def generateTrainingData():
         allLabels = allLabels.cuda()
 
     return allTileInfo, allLabels
+
+def filterBadTiles(tiles, board, bfs):
+    """ TESTING Removes tiles that are very hard to classify """
+    probs = bfs.calculateProbabilities()
+    goodTiles = []
+    for t in tiles:
+        toKick = abs(probs[t.row][t.col] - .5) # Highest chance of kicking 50%, lowest at the edges
+        if np.random.rand() < toKick:
+            goodTiles.append(t)
+        # else:
+        #     print("bad")
+    
+    return goodTiles
 
 def balanceLabels(allTileInfo, allLabels):
     """ Returns balanced data - i.e. equal amounts of both classes """
@@ -249,15 +266,6 @@ def balanceLabels(allTileInfo, allLabels):
     allLabels = allLabels[mask]
     
     return allTileInfo, allLabels
-
-# def generateCertainBombs():
-#     WIDTH = 5
-#     HEIGHT = 5
-#     board = Board() # TODO: make sure it's actually 5x5
-#     board.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)] #Reset
-#     for numBombs in range(1, 9):
-#         board.board[2][2].value = BOMB
-#         for  
 
 if __name__ == "__main__":
     # board = Board()

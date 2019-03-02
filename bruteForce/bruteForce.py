@@ -27,8 +27,8 @@ class BruteForceSolver:
         self.unmarkedBombs = MAX_BOMBS
     
     def firstMove(self):
-        # TODO: smartify and cite
-        self.board.explore(0,0)
+        # http://www.minesweeper.info/wiki/Strategy#First_Click
+        self.board.explore(0, 0)
     
     def mark(self, row, col):
         """ Marks the tile at the row and column as a bomb and updates the remaining value of surrounding tiles """
@@ -82,9 +82,9 @@ class BruteForceSolver:
         numUnexplored = self.countUnexploredTiles()
         noInfoTiles = numUnexplored - len(tilesToConsider)
 
-        print("Number of tiles to consider:", len(tilesToConsider))
-        print("Total unexplored tiles:", numUnexplored)
-        print("Tiles with no info:", noInfoTiles)
+        # print("Number of tiles to consider:", len(tilesToConsider))
+        # print("Total unexplored tiles:", numUnexplored)
+        # print("Tiles with no info:", noInfoTiles)
 
         possibleBombs = self.permuteBombsInTiles(tilesToConsider)
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
@@ -99,9 +99,9 @@ class BruteForceSolver:
         
         # The number of bomb permutations given bombs in tilesToConsider
         permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0
-        print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
+        # print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
-        print("Number of bombs in each permutation:", bombCounts)
+        # print("Number of bombs in each permutation:", bombCounts)
 
         isBombCount = [0] * len(tilesToConsider)
         for i, tile in enumerate(tilesToConsider):
@@ -117,12 +117,12 @@ class BruteForceSolver:
                 # TESTING:
                 # if i == 0:
                 #     print('-'*32)
-        print("Number of times this tile was a bomb:", isBombCount)
+        # print("Number of times this tile was a bomb:", isBombCount)
         isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount]
-        print("Probability of this tile being a bomb:", isBombProbability)
+        # print("Probability of this tile being a bomb:", isBombProbability)
         
         noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
-        print("Chance of having a bomb in no info tile:", noInfoBombChance)
+        # print("Chance of having a bomb in no info tile:", noInfoBombChance)
 
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
         
@@ -143,11 +143,11 @@ class BruteForceSolver:
                     probabilityBoard[i][j] = 3 # don't click me, I'm marked
 
         # TESTING
-        print("\n Probability board:")
-        for q in probabilityBoard:
-            for p in q:
-                print("{0:.2f}".format(p), end=" ")
-            print()
+        # print("\n Probability board:")
+        # for q in probabilityBoard:
+        #     for p in q:
+        #         print("{0:.2f}".format(p), end=" ")
+        #     print()
 
         return probabilityBoard
     

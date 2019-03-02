@@ -29,7 +29,6 @@ class NeuralNetSolver:
         self.net.load(self.optimizer)
     
     def firstMove(self):
-        # TODO: smartify and cite
         self.board.explore(0,0)
         return self.board
     
@@ -162,7 +161,7 @@ class NeuralNetSolver:
         if MODEL == "2dnn":
             input = 12
         if MODEL == "2dnnNEW":
-            input = 10
+            input = 11
 
         if torch.cuda.is_available():
             tiles = tiles.view((-1, input, 5, 5)).cuda()

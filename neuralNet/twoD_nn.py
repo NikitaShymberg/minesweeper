@@ -2,10 +2,7 @@ import sys, os
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
-import h5py
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -20,7 +17,7 @@ from tensorboardX import SummaryWriter
 class miniNet(nn.Module):
     def __init__(self):
         super(miniNet, self).__init__()
-        inputSize = 10 if MODEL == "2dnnNEW" else 12
+        inputSize = 11 if MODEL == "2dnnNEW" else 12
         self.conv1 = nn.Conv2d(inputSize, 500, 3)
         self.conv2 = nn.Conv2d(500, 500, 3)
         self.lin3 = nn.Linear(500 * 1, 2)
@@ -33,7 +30,7 @@ class miniNet(nn.Module):
         # print("x shape3", x.shape)
         x = x.view(-1, 500 * 1) # Reshape to fit into Linear layer
         # print("x shape4", x.shape)
-        x = torch.relu(self.lin3(x))
+        x = torch.relu(self.lin3(x)) # FIXME This should be a sigmoid(?) to make it a probability!
         # print("x shape5", x.shape)
         return x
     
@@ -107,7 +104,7 @@ if __name__ == "__main__":
     #         print("Predicted value:", mistakePredValues[q])
     #         print("Data:")
     #         values = np.zeros((5, 5))
-    #         for i, row in enumerate(data[q].reshape(5, 5, 10)):
+    #         for i, row in enumerate(data[q].reshape(5, 5, 11)):
     #             for j, val in enumerate(row):
     #                 values[i][j] = np.where(val == 1)[0]
     #                 if values[i][j] > 1:
@@ -116,8 +113,8 @@ if __name__ == "__main__":
     #                     values[i][j] = 9
     #         print(values)
     # net.train()
-
     # TESTING
+
     if torch.cuda.is_available():
         mini = miniNet().cuda()
     else:

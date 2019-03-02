@@ -6,8 +6,10 @@
    1. Get rid of as many appends as you can
 5. Refactor some things
 6. LINT!!
-7. Check what kinds of mistakes it makes
-8. Play around with thresholds on trainingData
+7. Keep checking what kinds of mistakes it makes
+8. Make better data
+   1. Play around with thresholds on trainingData (keep only good data)
+   2. Rotate/reflect all inputs
 
 Generating data:
     Make a board with a bunch of bombs
