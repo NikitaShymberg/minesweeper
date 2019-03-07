@@ -78,9 +78,14 @@ class BruteForceSolver:
                         
     def calculateProbabilities(self):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
+        #TESTING
+        from datetime import datetime
+        print("PROBS(1):", datetime.now()) #TESTING
+        #TESTING
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
         numUnexplored = self.countUnexploredTiles()
         noInfoTiles = numUnexplored - len(tilesToConsider)
+        print("PROBS(2):", datetime.now()) #TESTING
 
         # print("Number of tiles to consider:", len(tilesToConsider))
         # print("Total unexplored tiles:", numUnexplored)
@@ -88,6 +93,7 @@ class BruteForceSolver:
 
         possibleBombs = self.permuteBombsInTiles(tilesToConsider)
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
+        print("PROBS(3):", datetime.now()) #TESTING
 
         # Format: [permutation[tile and isBomb]]
         validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)]
@@ -96,13 +102,15 @@ class BruteForceSolver:
         bombCounts = [] # bombCounts[i] = the number of bombs in validBombs[i]
         for v in validBombs:
             bombCounts.append(len([isBomb for isBomb in v if isBomb['isBomb'] == BOMB]))
+        print("PROBS(4):", datetime.now()) #TESTING
         
         # The number of bomb permutations given bombs in tilesToConsider
-        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0
+        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0 NOTE: I think this is fixed
         # print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
         # print("Number of bombs in each permutation:", bombCounts)
 
+        print("PROBS(5):", datetime.now()) #TESTING
         isBombCount = [0] * len(tilesToConsider)
         for i, tile in enumerate(tilesToConsider):
             for j, permutation in enumerate(validBombs):
@@ -117,12 +125,17 @@ class BruteForceSolver:
                 # TESTING:
                 # if i == 0:
                 #     print('-'*32)
+        print("PROBS(6):", datetime.now()) #TESTING
         # print("Number of times this tile was a bomb:", isBombCount)
         isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount]
         # print("Probability of this tile being a bomb:", isBombProbability)
         
-        noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
+        if noInfoTiles != 0:
+            noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
+        else:
+            noInfoBombChance = 0
         # print("Chance of having a bomb in no info tile:", noInfoBombChance)
+        print("PROBS(7):", datetime.now()) #TESTING
 
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
         
@@ -131,10 +144,12 @@ class BruteForceSolver:
 
         for tp in tilesAndProbability:
             probabilityBoard[tp[0].row][tp[0].col] = tp[1]
+        print("PROBS(8):", datetime.now()) #TESTING
 
         for tile in exploredTiles:
             probabilityBoard[tile.row][tile.col] = 2 # don't click me, I', explored
         
+        print("PROBS(9):", datetime.now()) #TESTING
         for i, row in enumerate(probabilityBoard):
             for j, tile in enumerate(row):
                 if tile is None:
@@ -142,6 +157,7 @@ class BruteForceSolver:
                 if self.board.board[i][j].marked:
                     probabilityBoard[i][j] = 3 # don't click me, I'm marked
 
+        print("PROBS(10):", datetime.now()) #TESTING
         # TESTING
         # print("\n Probability board:")
         # for q in probabilityBoard:
@@ -186,10 +202,15 @@ class BruteForceSolver:
         Set up all the possible (valid and invalid) permutations of bombs in the given tiles 
         Returns a list of dicts with {tile: $tile, isBomb: $boolean}
         """
+        #TESTING
+        from datetime import datetime
+        print("PBIT(1):", datetime.now()) #TESTING
+        #TESTING
         possiblePermutations = []
         for numBombs in range(min(self.unmarkedBombs + 1, len(tiles) + 1)):
             bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
             possiblePermutations.append(multiset_permutations(bombArrangement)) #TODO: don't need the empty set (it's fine?)
+        print("PBIT(2):", datetime.now()) #TESTING
 
         # TODO: timeit, if the other thing is faster, apply to all
         # Format: [number of bombs[bomb arrangement[isBomb]]]
@@ -198,23 +219,29 @@ class BruteForceSolver:
         #     if p not in q:
         #         q.add(p)
             
+        print("PBIT(3):", datetime.now()) #TESTING
         # TESTING
         # print("Bomb layouts:")
         # for pp in possiblePermutations:
         #     pprint(list(pp))
 
         tiles = list(tiles)
+        # FIXME: I'm slow and I eat memory like popcorn
+        # NOTES: len(mapperPermutations) == len(pp)
+        #        len(arrangementGroup) == len(permutation)
         mappedPermutations = []
         for pp in possiblePermutations:
             for permutation in pp:
                 arrangementGroup = []
                 for i, isBomb in enumerate(permutation):
+                    print("PBIT(3.3):", datetime.now()) #TESTING
                     arrangementGroup.append({
                         "tile": tiles[i],
                         "isBomb": isBomb
                     })
                 mappedPermutations.append(arrangementGroup)
                 
+        print("PBIT(4):", datetime.now()) #TESTING
         return mappedPermutations
 
     

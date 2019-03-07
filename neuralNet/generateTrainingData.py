@@ -196,21 +196,33 @@ def exploreSafeTile(board):
 
 def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
+    #TESTING
+    from datetime import datetime
+    print("START:", datetime.now()) #TESTING
+    #TESTING
+
     allTileInfo = []
     allLabels = []
     numMoves = 0
 
     while len(allLabels) < 2.5 * BATCH_SIZE:
+        print("START OF LOOP:", datetime.now()) #TESTING
         numMoves = (numMoves + 1) % 16
         board = Board()
         for _ in range(numMoves):
             exploreSafeTile(board)
+        print("EXPLORED THINGS:", datetime.now()) #TESTING
         
         # FIXME this is hideous
         bfs = BruteForceSolver()
         bfs.board = board
+        print("SET UP BFS:", datetime.now()) #TESTING
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
-        tilesToConsider = filterBadTiles(tilesToConsider, board, bfs) # TESTING
+        print("BEFORE FILTER:", datetime.now()) #TESTING
+        probs = bfs.calculateProbabilities()
+        print("AFTER PROBS:", datetime.now()) #TESTING
+        tilesToConsider = filterBadTiles(tilesToConsider, board, probs) # TESTING
+        print("AFTER FILTER:", datetime.now()) #TESTING
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
@@ -220,7 +232,8 @@ def generateTrainingData():
             allTileInfo.append(np.rot90(tileInfo, 1, axes=(0,1)))
             allTileInfo.append(np.rot90(tileInfo, 2, axes=(0,1)))
             allTileInfo.append(np.rot90(tileInfo, 3, axes=(0,1)))
-            allLabels.append(label)
+            for _ in range(6):
+                allLabels.append(label)
     
     allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
     if MODEL == "nn":
@@ -238,16 +251,15 @@ def generateTrainingData():
 
     return allTileInfo, allLabels
 
-def filterBadTiles(tiles, board, bfs):
+def filterBadTiles(tiles, board, probs):
     """ TESTING Removes tiles that are very hard to classify """
-    probs = bfs.calculateProbabilities()
     goodTiles = []
     for t in tiles:
         toKick = abs(probs[t.row][t.col] - .5) # Highest chance of kicking 50%, lowest at the edges
         if np.random.rand() < toKick:
             goodTiles.append(t)
-        # else:
-        #     print("bad")
+        else:
+            print("bad")
     
     return goodTiles
 
@@ -272,4 +284,5 @@ if __name__ == "__main__":
     # for _ in range(10):
     #     exploreSafeTile(board)
     # print(board)
+    print("START OF PROGRAM!") #TESTING
     generateTrainingData()
