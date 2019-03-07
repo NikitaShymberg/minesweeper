@@ -208,6 +208,7 @@ def generateTrainingData():
     while len(allLabels) < 2.5 * BATCH_SIZE:
         print("START OF LOOP:", datetime.now()) #TESTING
         numMoves = (numMoves + 1) % 16
+        print("NUMMOVES:", numMoves)
         board = Board()
         for _ in range(numMoves):
             exploreSafeTile(board)

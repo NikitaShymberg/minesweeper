@@ -8,6 +8,7 @@ from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
 from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
+import numpy as np
 
 #TESTING
 from pprint import pprint
@@ -204,44 +205,30 @@ class BruteForceSolver:
         """
         #TESTING
         from datetime import datetime
-        print("PBIT(1):", datetime.now()) #TESTING
         #TESTING
+
         possiblePermutations = []
+        # FIXME: this is also slow
         for numBombs in range(min(self.unmarkedBombs + 1, len(tiles) + 1)):
             bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
-            possiblePermutations.append(multiset_permutations(bombArrangement)) #TODO: don't need the empty set (it's fine?)
-        print("PBIT(2):", datetime.now()) #TESTING
+            possiblePermutations += list(multiset_permutations(bombArrangement))
 
-        # TODO: timeit, if the other thing is faster, apply to all
-        # Format: [number of bombs[bomb arrangement[isBomb]]]
-        possiblePermutations = set(possiblePermutations)
-        # for p in possiblePermutations:
-        #     if p not in q:
-        #         q.add(p)
+        # Format: [bomb arrangement[isBomb]]
+        possiblePermutations = np.array(possiblePermutations, dtype=int)
             
-        print("PBIT(3):", datetime.now()) #TESTING
         # TESTING
         # print("Bomb layouts:")
         # for pp in possiblePermutations:
         #     pprint(list(pp))
 
-        tiles = list(tiles)
-        # FIXME: I'm slow and I eat memory like popcorn
-        # NOTES: len(mapperPermutations) == len(pp)
-        #        len(arrangementGroup) == len(permutation)
-        mappedPermutations = []
-        for pp in possiblePermutations:
-            for permutation in pp:
-                arrangementGroup = []
-                for i, isBomb in enumerate(permutation):
-                    print("PBIT(3.3):", datetime.now()) #TESTING
-                    arrangementGroup.append({
-                        "tile": tiles[i],
-                        "isBomb": isBomb
-                    })
-                mappedPermutations.append(arrangementGroup)
-                
-        print("PBIT(4):", datetime.now()) #TESTING
+        tiles = np.array(list(tiles)).reshape(1, -1)
+        # FIXME: I'm STILL slow and I eat memory like popcorn
+        mapBombsToTiles = lambda bombs, tile: {"tile": tile, "isBomb": bombs}
+        mapBombsToTiles = np.vectorize(mapBombsToTiles)
+        print("PossiblePermutations shape:", possiblePermutations.shape) # TESTING
+        print("Tiles shape:", tiles.shape) # TESTING
+        mappedPermutations = mapBombsToTiles(possiblePermutations, tiles)
+        
         return mappedPermutations
 
     

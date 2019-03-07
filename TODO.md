@@ -8,8 +8,10 @@
 6. LINT!!
 7. Keep checking what kinds of mistakes it makes
 8. Make better data
-   1. Play around with thresholds on trainingData (keep only good data)
-   2. Rotate/reflect all inputs
+   1. Generate it on a smaller board, I think that's the only way
+      1. This means separate constants for that
+      2. And play with the number of moves again
+   2. Play around with thresholds on trainingData (keep only good data)
 
 Generating data:
     Make a board with a bunch of bombs
