@@ -207,7 +207,7 @@ def generateTrainingData():
 
     while len(allLabels) < 2.5 * BATCH_SIZE:
         print("START OF LOOP:", datetime.now()) #TESTING
-        numMoves = (numMoves + 1) % 16
+        numMoves = (numMoves % 16) + 1
         print("NUMMOVES:", numMoves)
         board = Board()
         for _ in range(numMoves):
@@ -219,6 +219,8 @@ def generateTrainingData():
         bfs.board = board
         print("SET UP BFS:", datetime.now()) #TESTING
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
+        if len(tilesToConsider) > 15:
+            continue # Otherwise it takes too long... TODO: make sure this doesn't fup the data
         print("BEFORE FILTER:", datetime.now()) #TESTING
         probs = bfs.calculateProbabilities()
         print("AFTER PROBS:", datetime.now()) #TESTING
@@ -257,10 +259,8 @@ def filterBadTiles(tiles, board, probs):
     goodTiles = []
     for t in tiles:
         toKick = abs(probs[t.row][t.col] - .5) # Highest chance of kicking 50%, lowest at the edges
-        if np.random.rand() < toKick:
+        if toKick > 0.35 and np.random.rand() / 2 < toKick: # But definitely kick the real bad ones
             goodTiles.append(t)
-        else:
-            print("bad")
     
     return goodTiles
 
