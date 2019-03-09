@@ -139,10 +139,9 @@ def processTile(board, tile, mode="train"):
                         # print("remaining value:", tile.remainingValue, "at", tile.row, tile.col)
                         values[i][j][tile.remainingValue + 3] = 1
     
-    # TESTING TODO: I don't think combining the 0 thing is was a good idea
     # One hot format:
     # [
-    #     [isTile/0, isUnexplored, 1, 2, 3, 4, 5, 6, 7, 8], ...
+    #     [isTile, isUnexplored, 0, 1, 2, 3, 4, 5, 6, 7, 8], ...
     # ]
     elif MODEL == "2dnnNEW":
         values = np.zeros((5, 5, 11))
@@ -197,35 +196,35 @@ def exploreSafeTile(board):
 def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
     #TESTING
-    from datetime import datetime
-    print("START:", datetime.now()) #TESTING
-    #TESTING
+    # from datetime import datetime
+    # print("START:", datetime.now()) #TESTING
+    # TESTING
 
     allTileInfo = []
     allLabels = []
     numMoves = 0
 
     while len(allLabels) < 2.5 * BATCH_SIZE:
-        print("START OF LOOP:", datetime.now()) #TESTING
+        # print("START OF LOOP:", datetime.now()) #TESTING
         numMoves = (numMoves % 16) + 1
-        print("NUMMOVES:", numMoves)
+        # print("NUMMOVES:", numMoves) # TESTING
         board = Board()
         for _ in range(numMoves):
             exploreSafeTile(board)
-        print("EXPLORED THINGS:", datetime.now()) #TESTING
+        # print("EXPLORED THINGS:", datetime.now()) #TESTING
         
         # FIXME this is hideous
         bfs = BruteForceSolver()
         bfs.board = board
-        print("SET UP BFS:", datetime.now()) #TESTING
+        # print("SET UP BFS:", datetime.now()) #TESTING
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
         if len(tilesToConsider) > 15:
             continue # Otherwise it takes too long... TODO: make sure this doesn't fup the data
-        print("BEFORE FILTER:", datetime.now()) #TESTING
+        # print("BEFORE FILTER:", datetime.now()) #TESTING
         probs = bfs.calculateProbabilities()
-        print("AFTER PROBS:", datetime.now()) #TESTING
-        tilesToConsider = filterBadTiles(tilesToConsider, board, probs) # TESTING
-        print("AFTER FILTER:", datetime.now()) #TESTING
+        # print("AFTER PROBS:", datetime.now()) #TESTING
+        # tilesToConsider = filterBadTiles(tilesToConsider, board, probs) # TESTING
+        # print("AFTER FILTER:", datetime.now()) #TESTING
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
@@ -285,5 +284,5 @@ if __name__ == "__main__":
     # for _ in range(10):
     #     exploreSafeTile(board)
     # print(board)
-    print("START OF PROGRAM!") #TESTING
+    # print("START OF PROGRAM!") #TESTING
     generateTrainingData()

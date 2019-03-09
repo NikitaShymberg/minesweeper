@@ -133,7 +133,7 @@ if __name__ == "__main__":
         data, labels = generateTrainingData()
         loss, acc = mini.train_model(data, labels, criterion, optimizer)
 
-        if epoch % (EPOCHS // 10000) == 0 and epoch != 0:
+        if epoch % (EPOCHS // 100000) == 0 and epoch != 0:
             print("EPOCH: ", epoch, "Training Loss:  ", loss.item())
             print("EPOCH: ", epoch, "Training Accuracy:  ", acc.item())
             tr_writer.add_scalar("data/loss", loss.item(), epoch)

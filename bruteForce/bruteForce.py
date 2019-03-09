@@ -91,7 +91,7 @@ class BruteForceSolver:
         exploredTiles = [tile for row in self.board.board for tile in row if tile.explored] 
 
         # Format: [permutation[tile and isBomb]]
-        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles)]
+        validBombs = [x for x in possibleBombs if self.isPermutationValid(x, exploredTiles, noInfoTiles)]
 
         # Calculate probability of having that many bombs in tilesToConsider
         bombCounts = [] # bombCounts[i] = the number of bombs in validBombs[i]
@@ -99,7 +99,7 @@ class BruteForceSolver:
             bombCounts.append(len([isBomb for isBomb in v if isBomb['isBomb'] == BOMB]))
         
         # The number of bomb permutations given bombs in tilesToConsider
-        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts] # BUG: sometimes this is 0 NOTE: I think this is fixed
+        permutationsOfOtherTiles = [self.countPermutations(noInfoTiles, self.unmarkedBombs - bc) for bc in bombCounts]
         # print("Permutations of other tiles", permutationsOfOtherTiles) # TODO: testme?
         
         # print("Number of bombs in each permutation:", bombCounts)
@@ -119,11 +119,17 @@ class BruteForceSolver:
                 # if i == 0:
                 #     print('-'*32)
         # print("Number of times this tile was a bomb:", isBombCount)
-        isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount]
+        if sum(permutationsOfOtherTiles) != 0:
+            isBombProbability = [count / sum(permutationsOfOtherTiles) for count in isBombCount]
+        else:
+            isBombProbability = [0] * len(isBombCount)
         # print("Probability of this tile being a bomb:", isBombProbability)
         
         if noInfoTiles != 0:
-            noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
+            if len(bombCounts) != 0:
+                noInfoBombChance = (self.unmarkedBombs - sum(bombCounts)/len(bombCounts)) / noInfoTiles
+            else:
+                noInfoBombChance = self.unmarkedBombs / noInfoTiles
         else:
             noInfoBombChance = 0
         # print("Chance of having a bomb in no info tile:", noInfoBombChance)
@@ -159,8 +165,12 @@ class BruteForceSolver:
         return factorial(n) / (factorial(n - r))
     
     
-    def isPermutationValid(self, permutation, explored):
+    def isPermutationValid(self, permutation, explored, noInfoTiles):
         """ Returns true if the given permutation of bombs is valid given the explored tiles """
+        # If the number of bombs for outside the permutation > noInfoTiles then invalid
+        if self.unmarkedBombs + sum([p['isBomb'] for p in permutation]) < noInfoTiles:
+            return False
+
         for e in explored:
             adjacentBombs = [p for p in permutation if self.isAdjacent(e, p['tile']) and p['isBomb'] == BOMB]
             # if len(adjacentBombs) > 0 and len(adjacentBombs) ==  e.value - 1:
@@ -192,7 +202,7 @@ class BruteForceSolver:
         """
         possiblePermutations = []
         # FIXME: this is also slow
-        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles) + 1)):
+        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles))):
             bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
             possiblePermutations += list(multiset_permutations(bombArrangement))
 
@@ -208,8 +218,7 @@ class BruteForceSolver:
         # FIXME: I'm STILL slow and I eat memory like popcorn
         mapBombsToTiles = lambda bombs, tile: {"tile": tile, "isBomb": bombs}
         mapBombsToTiles = np.vectorize(mapBombsToTiles)
-        print("PossiblePermutations shape:", possiblePermutations.shape) # TESTING
-        print("Tiles shape:", tiles.shape) # TESTING
+        # print("PossiblePermutations shape:", possiblePermutations.shape) # TESTING - number of perms and tiles
         mappedPermutations = mapBombsToTiles(possiblePermutations, tiles)
         
         return mappedPermutations
