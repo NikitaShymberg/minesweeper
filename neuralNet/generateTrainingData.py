@@ -160,6 +160,36 @@ def processTile(board, tile, mode="train"):
 
     return values, label
 
+def printData(tiles):
+    # tiles = tiles.cpu().numpy()
+    tiles = tiles.reshape(5, 5, 11)
+    for r in tiles:
+        for t in r:
+            if t[0] == 1:
+                val = " X"
+            elif t[1] == 1:
+                val = " ?"
+            elif t[2] == 1:
+                val = " 0"
+            elif t[3] == 1:
+                val = " 1"
+            elif t[4] == 1:
+                val = " 2"
+            elif t[5] == 1:
+                val = " 3"
+            elif t[6] == 1:
+                val = " 4"
+            elif t[7] == 1:
+                val = " 5"
+            elif t[8] == 1:
+                val = " 6"
+            elif t[9] == 1:
+                val = " 7"
+            elif t[10] == 1:
+                val = " 8"
+            print(val, end=" ")
+        print()
+
 def transformBoard(board):
     """ Given a board, transforms all tiles next to eplored ones into a format that the nn can take
     Returns a list of dicts with the "tile" and "nn" keys
@@ -195,36 +225,25 @@ def exploreSafeTile(board):
 
 def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
-    #TESTING
-    # from datetime import datetime
-    # print("START:", datetime.now()) #TESTING
-    # TESTING
-
     allTileInfo = []
     allLabels = []
     numMoves = 0
 
     while len(allLabels) < 2.5 * BATCH_SIZE:
-        # print("START OF LOOP:", datetime.now()) #TESTING
         numMoves = (numMoves % 16) + 1
-        # print("NUMMOVES:", numMoves) # TESTING
         board = Board()
         for _ in range(numMoves):
             exploreSafeTile(board)
-        # print("EXPLORED THINGS:", datetime.now()) #TESTING
         
         # FIXME this is hideous
         bfs = BruteForceSolver()
         bfs.board = board
-        # print("SET UP BFS:", datetime.now()) #TESTING
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
         if len(tilesToConsider) > 15:
-            continue # Otherwise it takes too long... TODO: make sure this doesn't fup the data
-        # print("BEFORE FILTER:", datetime.now()) #TESTING
+            continue # Otherwise it takes too long...
         probs = bfs.calculateProbabilities()
-        # print("AFTER PROBS:", datetime.now()) #TESTING
-        # tilesToConsider = filterBadTiles(tilesToConsider, board, probs) # TESTING
-        # print("AFTER FILTER:", datetime.now()) #TESTING
+        # print(board) #TESTING
+        tilesToConsider = filterBadTiles(tilesToConsider, board, probs)
 
         for tile in tilesToConsider:
             tileInfo, label = processTile(board, tile)
@@ -254,11 +273,19 @@ def generateTrainingData():
     return allTileInfo, allLabels
 
 def filterBadTiles(tiles, board, probs):
-    """ TESTING Removes tiles that are very hard to classify """
+    """ Removes tiles that are very hard to classify """
+    # print("\n Probability board:") #TESTING
+    # for q in probs:
+    #     for p in q:
+    #         print("{0:.2f}".format(p), end=" ")
+    #     print()
+
     goodTiles = []
     for t in tiles:
-        toKick = abs(probs[t.row][t.col] - .5) # Highest chance of kicking 50%, lowest at the edges
-        if toKick > 0.35 and np.random.rand() / 2 < toKick: # But definitely kick the real bad ones
+        #toKick = abs(probs[t.row][t.col] - .5) # Highest chance of kicking 50%, lowest at the edges
+        #if toKick > 0.35 and np.random.rand() / 2 < toKick: # But definitely kick the real bad ones
+        if probs[t.row][t.col] == 0 or probs[t.row][t.col] == 1:
+            # print("GOOD TILE AT:", t.row, t.col, "Value:", probs[t.row][t.col]) TESTING
             goodTiles.append(t)
     
     return goodTiles
@@ -280,9 +307,9 @@ def balanceLabels(allTileInfo, allLabels):
     return allTileInfo, allLabels
 
 if __name__ == "__main__":
-    # board = Board()
-    # for _ in range(10):
-    #     exploreSafeTile(board)
-    # print(board)
-    # print("START OF PROGRAM!") #TESTING
-    generateTrainingData()
+    d, l = generateTrainingData()
+    for q in d:
+        printData(q)
+        print()
+        print(l)
+        print()

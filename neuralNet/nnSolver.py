@@ -9,7 +9,7 @@ from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
 from twoD_nn import miniNet
-from generateTrainingData import transformBoard, generateTrainingData
+from generateTrainingData import transformBoard, generateTrainingData, printData
 import numpy as np
 import torch
 
@@ -67,6 +67,11 @@ class NeuralNetSolver:
         nnInput = [x["nn"] for x in validTiles]
         tiles = [x["tile"] for x in validTiles]
         probs = self.determineProbs(torch.Tensor(nnInput)).cpu().numpy()
+        # TESTING
+        print("PROBS:")
+        for p in probs:
+            print(p)
+
         confidence = [abs(x[0] - x[1]) for x in probs]
         for i in range(len(confidence)):
             validTiles[i]["confidence"] = confidence[i]
@@ -110,7 +115,7 @@ class NeuralNetSolver:
                 else:
                     valid = True
 
-        exploredProportion = EXPLORE_COEFF * self.getExploredProportion() # TODO: Maybe more like how explored is an area?
+        exploredProportion = 1 #EXPLORE_COEFF * self.getExploredProportion() # TODO: Maybe more like how explored is an area?
 
         if exploreMove is not None and exploreMove["confidence"] > MOVE_CERTAINTY_THRESHOLD * exploredProportion: # TODO: explore more in the early game, mark late game
             move = 0
@@ -173,43 +178,48 @@ class NeuralNetSolver:
         
 if __name__ == "__main__":
     nns = NeuralNetSolver()
-    print(nns.firstMove())
-    while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
-        print(nns.move())
+    # print(nns.firstMove())
+    # while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
+    #     print(nns.move())
 
 
     # TESTING
-    # data, labels = generateTrainingData()
-    # nns.net.eval()
-    # with torch.no_grad():
-    #     output = nns.net.forward(data)
-    #     mistakes = (labels != torch.argmax(output, dim=1))
-    #     output = output.cpu().numpy()
-    #     mistakes = mistakes.cpu().numpy().astype(bool)
-    #     labels = labels.cpu().numpy()
-    #     mistakePredValues = output[mistakes]
-    #     correctPredValues = output[~mistakes]
-    #     correctDiff = [abs(x[0] - x[1]) for x in correctPredValues]
-    #     mistakeDiff = [abs(x[0] - x[1]) for x in mistakePredValues]
+    data, labels = generateTrainingData()
+    nns.net.eval()
+    with torch.no_grad():
+        output = nns.net.forward(data)
+        mistakes = (labels != torch.argmax(output, dim=1))
+        output = output.cpu().numpy()
+        mistakes = mistakes.cpu().numpy().astype(bool)
+        labels = labels.cpu().numpy()
+        mistakePredValues = output[mistakes]
+        data = data.cpu().numpy()
+        mistakeData = data[mistakes]
+        mistakeLabels = labels[mistakes]
+        correctPredValues = output[~mistakes]
+        
+        print("First mistake:", mistakePredValues[0])
+        printData(mistakeData[0])
+        print("Actual value:", mistakeLabels[0])
 
-    #     print("Max correct diff:", max(correctDiff))
-    #     print("Max mistake diff:", max(mistakeDiff))
-    #     print()
-    #     print("Min correct diff:", min(correctDiff))
-    #     print("Min mistake diff:", min(mistakeDiff))
-    #     print()
-    #     print("Avg correct diff:", sum(correctDiff) / len(correctDiff))
-    #     print("Avg mistake diff:", sum(mistakeDiff) / len(mistakeDiff))
-    #     print()
+        correctDiff = [abs(x[0] - x[1]) for x in correctPredValues]
+        mistakeDiff = [abs(x[0] - x[1]) for x in mistakePredValues]
+        print("Max correct diff:", max(correctDiff))
+        print("Max mistake diff:", max(mistakeDiff))
+        print()
+        print("Min correct diff:", min(correctDiff))
+        print("Min mistake diff:", min(mistakeDiff))
+        print()
+        print("Avg correct diff:", sum(correctDiff) / len(correctDiff))
+        print("Avg mistake diff:", sum(mistakeDiff) / len(mistakeDiff))
+        print()
 
-    #     #Drop values where the difference is under threshold
-    #     threshold = lambda x: abs(x[0] - x[1]) > CERTAINTY_THRESHOLD
-    #     mask = [threshold(x) for x in output]  # TODO: loops bad
-    #     certainOut = output[mask]
-    #     certainLabels = labels[mask]
-    #     certainAcc = np.mean(certainLabels == np.argmax(certainOut, axis=1))
-    #     print("Thresholded accuracy:", certainAcc)
-    #     print("Number certain results:", certainLabels.shape)
-    #     print("Percentage certain results:", certainLabels.shape[0] / BATCH_SIZE)
-
-    # nns.net.train()
+        #Drop values where the difference is under threshold
+        # threshold = lambda x: abs(x[0] - x[1]) > CERTAINTY_THRESHOLD
+        # mask = [threshold(x) for x in output]  # TODO: loops bad
+        # certainOut = output[mask]
+        # certainLabels = labels[mask]
+        # certainAcc = np.mean(certainLabels == np.argmax(certainOut, axis=1))
+        # print("Thresholded accuracy:", certainAcc)
+        # print("Number certain results:", certainLabels.shape)
+        # print("Percentage certain results:", certainLabels.shape[0] / BATCH_SIZE)

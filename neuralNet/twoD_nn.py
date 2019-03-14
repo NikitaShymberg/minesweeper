@@ -30,7 +30,7 @@ class miniNet(nn.Module):
         # print("x shape3", x.shape)
         x = x.view(-1, 500 * 1) # Reshape to fit into Linear layer
         # print("x shape4", x.shape)
-        x = torch.relu(self.lin3(x)) # FIXME This should be a sigmoid(?) to make it a probability!
+        x = torch.sigmoid(self.lin3(x))
         # print("x shape5", x.shape)
         return x
     
@@ -115,15 +115,16 @@ if __name__ == "__main__":
     # net.train()
     # TESTING
 
+    print("Trying to use", torch.cuda.device_count(), "GPUs...")
     if torch.cuda.is_available():
-        mini = miniNet().cuda()
+        mini = nn.DataParallel(miniNet()).to(torch.device("cuda:0"))
     else:
         mini = miniNet()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(mini.parameters(), lr=LR, weight_decay=REG)
     if os.path.isfile(CHECKPOINT_FILE):
         print("Loading previous file...")
-        first_epoch = mini.load(optimizer)
+        first_epoch = mini.module.load(optimizer)
     else:
         first_epoch = 0
 
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     val_writer = SummaryWriter("runs/validation")
     for epoch in range(first_epoch, EPOCHS):
         data, labels = generateTrainingData()
-        loss, acc = mini.train_model(data, labels, criterion, optimizer)
+        loss, acc = mini.module.train_model(data, labels, criterion, optimizer)
 
         if epoch % (EPOCHS // 100000) == 0 and epoch != 0:
             print("EPOCH: ", epoch, "Training Loss:  ", loss.item())
@@ -139,14 +140,14 @@ if __name__ == "__main__":
             tr_writer.add_scalar("data/loss", loss.item(), epoch)
             tr_writer.add_scalar("data/accuracy", acc.item(), epoch)
 
-            val_data, val_labels = generateTrainingData()
-            val_loss, val_acc = mini.test(val_data, val_labels, criterion)
-            print("EPOCH: ", epoch, "Validation Loss:", val_loss.item())
-            print("EPOCH: ", epoch, "Validation Accuracy:", val_acc.item())
-            tr_writer.add_scalar("data/val_loss", val_loss.item(), epoch)
-            tr_writer.add_scalar("data/val_accuracy", val_acc.item(), epoch)
+            #val_data, val_labels = generateTrainingData()
+            #val_loss, val_acc = mini.module.test(val_data, val_labels, criterion)
+            #print("EPOCH: ", epoch, "Validation Loss:", val_loss.item())
+            #print("EPOCH: ", epoch, "Validation Accuracy:", val_acc.item())
+            #tr_writer.add_scalar("data/val_loss", val_loss.item(), epoch)
+            #tr_writer.add_scalar("data/val_accuracy", val_acc.item(), epoch)
 
-            mini.save(epoch, optimizer)
+            mini.module.save(epoch, optimizer)
     
     val_data, val_labels = generateTrainingData()
     val_loss, val_acc = mini.test(val_data, val_labels, criterion)

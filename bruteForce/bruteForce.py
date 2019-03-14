@@ -162,13 +162,17 @@ class BruteForceSolver:
         return probabilityBoard
     
     def countPermutations(self, n, r):
-        return factorial(n) / (factorial(n - r))
+        # HACK: r should never be > n but sometimes it is :(
+        if n - r < 0:
+            return 0
+        else:
+            return factorial(n) / (factorial(n - r))
     
     
     def isPermutationValid(self, permutation, explored, noInfoTiles):
         """ Returns true if the given permutation of bombs is valid given the explored tiles """
         # If the number of bombs for outside the permutation > noInfoTiles then invalid
-        if self.unmarkedBombs + sum([p['isBomb'] for p in permutation]) < noInfoTiles:
+        if self.unmarkedBombs + sum([p['isBomb'] for p in permutation]) > noInfoTiles:
             return False
 
         for e in explored:
