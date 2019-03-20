@@ -5,5 +5,5 @@
 #SBATCH --time=00:01:00
 #SBATCH --account=def-ycoady
 module load python/3.6
-source $HOME/projects/def-ycoady/nshymber/minesweeper/bin/activate
-python ./test_run.py
+# source $HOME/projects/def-ycoady/nshymber/minesweeper/bin/activate
+python neuralNel/twoD_nn.py

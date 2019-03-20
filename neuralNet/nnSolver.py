@@ -62,22 +62,24 @@ class NeuralNetSolver:
     
     def move(self):
         # TODO: clean/reafactor
-        # TODO: Might need to unmark sometimes..
         validTiles = transformBoard(self.board)
         nnInput = [x["nn"] for x in validTiles]
         tiles = [x["tile"] for x in validTiles]
         probs = self.determineProbs(torch.Tensor(nnInput)).cpu().numpy()
-        # TESTING
-        print("PROBS:")
-        for p in probs:
-            print(p)
+        validTiles = validTiles[::6] #Get rid of duplicates since they're already extracted
 
-        confidence = [abs(x[0] - x[1]) for x in probs]
+        # print("validTiles shape:", validTiles.shape) #TESTING
+        # print("probs shape:", probs.shape) #TESTING
+        avgProbs = np.mean(probs.reshape(-1, 6, 2), axis=1)
+        # print("avgProbs shape:", avgProbs.shape) #TESTING
+        # print("avgProbs:", avgProbs) #TESTING
+
+        confidence = [abs(x[0] - x[1]) for x in avgProbs]
         for i in range(len(confidence)):
             validTiles[i]["confidence"] = confidence[i]
 
         isExplore = lambda x: x[0] > x[1]
-        explores = np.array([isExplore(x) for x in probs])
+        explores = np.array([isExplore(x) for x in avgProbs])
         marks = ~explores
         explores = validTiles[explores]
         marks = validTiles[marks]
@@ -178,41 +180,41 @@ class NeuralNetSolver:
         
 if __name__ == "__main__":
     nns = NeuralNetSolver()
-    # print(nns.firstMove())
-    # while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
-    #     print(nns.move())
+    print(nns.firstMove())
+    while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
+        print(nns.move())
 
 
     # TESTING
-    data, labels = generateTrainingData()
-    nns.net.eval()
-    with torch.no_grad():
-        output = nns.net.forward(data)
-        mistakes = (labels != torch.argmax(output, dim=1))
-        output = output.cpu().numpy()
-        mistakes = mistakes.cpu().numpy().astype(bool)
-        labels = labels.cpu().numpy()
-        mistakePredValues = output[mistakes]
-        data = data.cpu().numpy()
-        mistakeData = data[mistakes]
-        mistakeLabels = labels[mistakes]
-        correctPredValues = output[~mistakes]
+    # data, labels = generateTrainingData()
+    # nns.net.eval()
+    # with torch.no_grad():
+    #     output = nns.net.forward(data)
+    #     mistakes = (labels != torch.argmax(output, dim=1))
+    #     output = output.cpu().numpy()
+    #     mistakes = mistakes.cpu().numpy().astype(bool)
+    #     labels = labels.cpu().numpy()
+    #     mistakePredValues = output[mistakes]
+    #     data = data.cpu().numpy()
+    #     mistakeData = data[mistakes]
+    #     mistakeLabels = labels[mistakes]
+    #     correctPredValues = output[~mistakes]
         
-        print("First mistake:", mistakePredValues[0])
-        printData(mistakeData[0])
-        print("Actual value:", mistakeLabels[0])
+    #     print("First mistake:", mistakePredValues[0])
+    #     printData(mistakeData[0])
+    #     print("Actual value:", mistakeLabels[0])
 
-        correctDiff = [abs(x[0] - x[1]) for x in correctPredValues]
-        mistakeDiff = [abs(x[0] - x[1]) for x in mistakePredValues]
-        print("Max correct diff:", max(correctDiff))
-        print("Max mistake diff:", max(mistakeDiff))
-        print()
-        print("Min correct diff:", min(correctDiff))
-        print("Min mistake diff:", min(mistakeDiff))
-        print()
-        print("Avg correct diff:", sum(correctDiff) / len(correctDiff))
-        print("Avg mistake diff:", sum(mistakeDiff) / len(mistakeDiff))
-        print()
+    #     correctDiff = [abs(x[0] - x[1]) for x in correctPredValues]
+    #     mistakeDiff = [abs(x[0] - x[1]) for x in mistakePredValues]
+    #     print("Max correct diff:", max(correctDiff))
+    #     print("Max mistake diff:", max(mistakeDiff))
+    #     print()
+    #     print("Min correct diff:", min(correctDiff))
+    #     print("Min mistake diff:", min(mistakeDiff))
+    #     print()
+    #     print("Avg correct diff:", sum(correctDiff) / len(correctDiff))
+    #     print("Avg mistake diff:", sum(mistakeDiff) / len(mistakeDiff))
+    #     print()
 
         #Drop values where the difference is under threshold
         # threshold = lambda x: abs(x[0] - x[1]) > CERTAINTY_THRESHOLD

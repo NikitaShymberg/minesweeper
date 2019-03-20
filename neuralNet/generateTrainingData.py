@@ -200,11 +200,13 @@ def transformBoard(board):
     bfs.board = board
     tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
     for tile in tilesToConsider:
-        processedTile, _ = processTile(board, tile, mode="play")
-        out.append({
-            "tile": tile,
-            "nn": processedTile
-        })
+        processedTile, l = processTile(board, tile, mode="play")
+        processTiles, _ = modifyTiles(processedTile, l) # TESTING ?
+        for pt in processTiles:
+            out.append({
+                "tile": tile,
+                "nn": pt
+            })
     
     return np.array(out)
 
@@ -222,6 +224,22 @@ def exploreSafeTile(board):
     
     if i < 50:
         board.explore(row, col)
+
+def modifyTiles(tileInfo, label):
+    """ Returns a list of rotated and flipped tiles and their labels """
+    allTileInfo = []
+    allLabels = []
+
+    allTileInfo.append(tileInfo)
+    allTileInfo.append(np.fliplr(tileInfo))
+    allTileInfo.append(np.flipud(tileInfo))
+    allTileInfo.append(np.rot90(tileInfo, 1, axes=(0,1)))
+    allTileInfo.append(np.rot90(tileInfo, 2, axes=(0,1)))
+    allTileInfo.append(np.rot90(tileInfo, 3, axes=(0,1)))
+    for _ in range(6):
+        allLabels.append(label)
+
+    return allTileInfo, allLabels
 
 def generateTrainingData():
     """ Returns BATCH_SIZE samples a one hot encoding of the data and a list of the labels """
@@ -245,16 +263,12 @@ def generateTrainingData():
         # print(board) #TESTING
         tilesToConsider = filterBadTiles(tilesToConsider, board, probs)
 
-        for tile in tilesToConsider:
+        for tile in tilesToConsider: # TODO TEST ME!!!
             tileInfo, label = processTile(board, tile)
-            allTileInfo.append(tileInfo)
-            allTileInfo.append(np.fliplr(tileInfo))
-            allTileInfo.append(np.flipud(tileInfo))
-            allTileInfo.append(np.rot90(tileInfo, 1, axes=(0,1)))
-            allTileInfo.append(np.rot90(tileInfo, 2, axes=(0,1)))
-            allTileInfo.append(np.rot90(tileInfo, 3, axes=(0,1)))
-            for _ in range(6):
-                allLabels.append(label)
+            modifiedTiles, modifiedLabels = modifyTiles(tileInfo, label)
+            allTileInfo += modifiedTiles
+            allLabels += modifiedLabels
+            
     
     allTileInfo, allLabels = balanceLabels(allTileInfo, allLabels)
     if MODEL == "nn":
@@ -308,8 +322,5 @@ def balanceLabels(allTileInfo, allLabels):
 
 if __name__ == "__main__":
     d, l = generateTrainingData()
-    for q in d:
-        printData(q)
-        print()
-        print(l)
-        print()
+    print("L:", l.cpu().numpy())
+    print("Num Bomb labels:", np.sum(l.cpu().numpy()))
