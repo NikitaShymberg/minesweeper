@@ -258,9 +258,8 @@ def generateTrainingData():
         bfs.board = board
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
         if len(tilesToConsider) > 15:
-            continue # Otherwise it takes too long...
+            tilesToConsider = tilesToConsider[:15] # Otherwise it takes too long...
         probs = bfs.calculateProbabilities()
-        # print(board) #TESTING
         tilesToConsider = filterBadTiles(tilesToConsider, board, probs)
 
         for tile in tilesToConsider: # TODO TEST ME!!!

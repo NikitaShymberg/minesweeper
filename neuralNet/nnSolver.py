@@ -13,8 +13,6 @@ from generateTrainingData import transformBoard, generateTrainingData, printData
 import numpy as np
 import torch
 
-#TESTING
-from pprint import pprint
 
 class NeuralNetSolver:
     def __init__(self):
@@ -67,12 +65,7 @@ class NeuralNetSolver:
         tiles = [x["tile"] for x in validTiles]
         probs = self.determineProbs(torch.Tensor(nnInput)).cpu().numpy()
         validTiles = validTiles[::6] #Get rid of duplicates since they're already extracted
-
-        # print("validTiles shape:", validTiles.shape) #TESTING
-        # print("probs shape:", probs.shape) #TESTING
         avgProbs = np.mean(probs.reshape(-1, 6, 2), axis=1)
-        # print("avgProbs shape:", avgProbs.shape) #TESTING
-        # print("avgProbs:", avgProbs) #TESTING
 
         confidence = [abs(x[0] - x[1]) for x in avgProbs]
         for i in range(len(confidence)):
@@ -110,7 +103,6 @@ class NeuralNetSolver:
                 if 0 in surroundingValues:
                     marks = np.delete(marks, index)
                     print("-"*16, "Tried to make a stupid move :(", "-"*16, ":", "MARK:", markMove["tile"].row, markMove["tile"].col)
-                    # TESTING: ultra cheating?
                     print("Instead I will", "Explore:", markMove["tile"].row, markMove["tile"].col)
                     self.board.explore(markMove["tile"].row, markMove["tile"].col)
                     return self.board
@@ -150,7 +142,7 @@ class NeuralNetSolver:
         
         return self.board
 
-    def getExploredProportion(self):
+    def getExploredProportion(self): # BUG this isn't returning the right thing?
         numExplored = 0
         numUnexplored = 0
         for r in self.board.board:
@@ -159,7 +151,7 @@ class NeuralNetSolver:
                     numExplored += 1
                 else:
                     numUnexplored += 1
-        return numExplored / numUnexplored        
+        return numExplored / (numUnexplored + numExplored)
 
     def determineProbs(self, tiles):
         """ Returns the output of the nn on the given tiles 
@@ -181,8 +173,11 @@ class NeuralNetSolver:
 if __name__ == "__main__":
     nns = NeuralNetSolver()
     print(nns.firstMove())
+    numMoves = 0 # TODO: put this into the class?
     while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
         print(nns.move())
+        numMoves += 1
+        print("This is move number:", numMoves)
 
 
     # TESTING
