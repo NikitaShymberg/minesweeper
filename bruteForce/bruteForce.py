@@ -42,7 +42,8 @@ class BruteForceSolver:
 
     def move(self):
         print("Number of bombs left:", self.unmarkedBombs)
-        probabilityBoard = self.calculateProbabilities()
+        tilesToConsider = self.getTilesAdjacentToExploredTiles()
+        probabilityBoard = self.calculateProbabilities(tilesToConsider)
 
         # Check if there is any certain bombs
         for i, row in enumerate(probabilityBoard):
@@ -77,9 +78,8 @@ class BruteForceSolver:
         
         return self.board
                         
-    def calculateProbabilities(self):
+    def calculateProbabilities(self, tilesToConsider):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
-        tilesToConsider = self.getTilesAdjacentToExploredTiles()
         numUnexplored = self.countUnexploredTiles()
         noInfoTiles = numUnexplored - len(tilesToConsider)
 
