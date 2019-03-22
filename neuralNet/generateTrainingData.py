@@ -257,8 +257,8 @@ def generateTrainingData():
         bfs = BruteForceSolver()
         bfs.board = board
         tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
-        if len(tilesToConsider) > 15:
-            tilesToConsider = tilesToConsider[:15] # Otherwise it takes too long...
+        if len(tilesToConsider) > 13:
+            tilesToConsider = list(tilesToConsider)[:13] # Otherwise it takes too long...
         probs = bfs.calculateProbabilities()
         tilesToConsider = filterBadTiles(tilesToConsider, board, probs)
 
