@@ -44,6 +44,7 @@ class BruteForceSolver:
         print("Number of bombs left:", self.unmarkedBombs)
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
         probabilityBoard = self.calculateProbabilities(tilesToConsider)
+        completedMove = False # Make all the certain moves at once
 
         # Check if there is any certain bombs
         for i, row in enumerate(probabilityBoard):
@@ -51,7 +52,7 @@ class BruteForceSolver:
                 if pBomb == 1 and not self.board.board[i][j].marked:
                     print("MOVE: mark", i, j)
                     self.mark(i, j)
-                    return self.board
+                    completedMove = True
 
         # Explore any certain safe spaces
         for i, row in enumerate(probabilityBoard):
@@ -59,8 +60,10 @@ class BruteForceSolver:
                 if pBomb == 0:
                     print("MOVE: explore1", i, j)
                     self.board.explore(i, j)
-                    return self.board
-                    
+                    completedMove = True
+        
+        if completedMove:
+            return self.board            
 
         # Explore the most likely safe space
         # TODO: speed me up scotty
@@ -284,7 +287,7 @@ if __name__ == "__main__":
     bfs.firstMove()
     print(bfs.board)
 
-    while bfs.unmarkedBombs > 0: # FIXME: this isn't the right way to determine if we win
+    while not bfs.board.isSolved(): # FIXME: this isn't the right way to determine if we win
         print(str(bfs.move()))
     
     print("Hooray! I won!")

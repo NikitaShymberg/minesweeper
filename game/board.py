@@ -141,7 +141,7 @@ class Board:
             if(value == BOMB):
                 print(self)
                 print("YOU LOST :(")
-                exit()
+                exit() #FIXME: for testing this isn't actually a good idea.......maybe an exception?
 
             if(value == 0):
                 # Explore surrounding tiles
@@ -200,9 +200,9 @@ class Board:
             self.correctMarks += 1
 
     def isSolved(self):
-        """ Checks if the only remaining unexplored tiles are marked bombs """
-        if self.correctMarks == MAX_BOMBS:
-            marks = [tile.marked for row in self.board for tile in row]
-            if marks.count(True) == MAX_BOMBS:
-                return True
+        """ Checks if the only remaining unexplored tiles are bombs """
+        unExplored = [True for row in self.board for tile in row if not tile.explored]
+        if len(unExplored) == MAX_BOMBS:
+            print(self)
+            return True
         return False
