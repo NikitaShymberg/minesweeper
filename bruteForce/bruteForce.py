@@ -2,6 +2,7 @@ import sys
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
+from time import perf_counter
 from game.board import Board
 from game.tile import Tile
 from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
@@ -43,32 +44,36 @@ class BruteForceSolver:
     def move(self):
         """
         Performs the optimal move, if the move was successful returns the
-        current board, else returns None to signify that a mine was triggered
+        current board, else returns None to signify that a mine was triggered.
+        The second return value is the actual number of moves made.
         """
         # print("Number of bombs left:", self.unmarkedBombs)
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
         probabilityBoard = self.calculateProbabilities(tilesToConsider)
         completedMove = False # Make all the certain moves at once
+        numMoves = 0
 
         # Check if there is any certain bombs
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 1 and not self.board.board[i][j].marked:
-                    # print("MOVE: mark", i, j)
+                    print("MOVE: mark", i, j)
                     self.mark(i, j)
+                    numMoves += 1
                     completedMove = True
 
         # Explore any certain safe spaces
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 0:
-                    # print("MOVE: explore1", i, j)
+                    print("MOVE: explore1", i, j)
+                    numMoves += 1
                     if self.board.explore(i, j):
-                        return None # Game exploded
+                        return None, numMoves # Game exploded
                     completedMove = True
         
         if completedMove:
-            return self.board            
+            return self.board, numMoves
 
         # Explore the most likely safe space
         # TODO: speed me up scotty
@@ -81,11 +86,12 @@ class BruteForceSolver:
                     minimum = pBomb
                     mini = i
                     minj = j
-        # print("MOVE: explore2", i, j)
+        print("MOVE: explore2", i, j)
+        numMoves += 1
         if self.board.explore(mini, minj):
-            return None # Game exploded
+            return None, numMoves # Game exploded
         
-        return self.board
+        return self.board, numMoves
                         
     def calculateProbabilities(self, tilesToConsider):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
@@ -283,33 +289,55 @@ class BruteForceSolver:
         count = 0
         for row in self.board.board:
             for tile in row:
-                if not tile.explored:
+                if not tile.explored and not tile.marked:
                     count += 1
         
         return count
 
     def play(self, verbose=True):
+        # TODO: omg please test me, this must be 100% right ....Seems like it?
         """
         Plays the game, returns stats about the game played
         """
         self.firstMove()
         if verbose:
             print(self.board)
+        totalMoves = 1
+        moveTimes = []
 
         while not self.board.isSolved():
-            boardState = self.move()
+            t0 = perf_counter()
+            boardState, numMoves = self.move()
+            t1 = perf_counter()
+            timeToMove = (t1 - t0) / numMoves
+            totalMoves += numMoves
+            moveTimes += [timeToMove] * numMoves
+
             if boardState:
                 if verbose:
                     print(str(boardState))
             else:
                 # Game is lost
-                return False
-        return True
+                return {
+                    "win": False,
+                    "explored": 1 - self.countUnexploredTiles() / (WIDTH * HEIGHT),
+                    "numMoves": totalMoves,
+                    "moveTimes": moveTimes,
+                }
+        return {
+            "win": True,
+            "explored": 1,
+            "numMoves": totalMoves,
+            "moveTimes": moveTimes,
+        }
 
 if __name__ == "__main__":
     bfs = BruteForceSolver()
-    if bfs.play(verbose=True):
+    stats = bfs.play(verbose=True)
+    if stats["win"]:
         print("Hooray, the robot won!")
+        print(stats)
     else:
         print("Stupid robot died :(")
+        print(stats)
     

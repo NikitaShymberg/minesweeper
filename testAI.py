@@ -22,16 +22,17 @@ def test_bfs():
     for boardLayout in BOARDS:
         for gameNum in NUM_GAMES:
             bfs = BruteForceSolver()
-            while not bfs.board.isSolved():
-                bfs.move() # TODO: record time properly here
+            stats = bfs.play(verbose=False)
             gameStats.append({
-                "boardLayout": boardLayout,
-                "moveTime": None,
-                "NumMoves": None,
-                "win": None,
-                "AvgMem": None,
-                "MaxMem": None,
-                "CPU": None,
+                "boardLayout": boardLayout, # The type of board that the game was played on
+                "moveTimes": None, # The time taken to complete each move
+                "NumMoves": None, # The total number of moves that happened in the game
+                "win": None, # Whether the robot won or lost
+                "explored": None, # The explored proportion of the board
+                "AvgMem": None, # Average memory usage during the game
+                "MaxMem": None, # Peak memory usage during the game
+                "AvgCPU": None, # Average CPU usage during the game
+                "MaxCPU": None, # Peak CPU usage during the game
             })
 
 def test_nn():

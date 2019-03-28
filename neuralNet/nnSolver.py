@@ -2,6 +2,7 @@ import sys
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
+from time import perf_counter
 from game.board import Board
 from game.tile import Tile
 from game.constants import *
@@ -153,7 +154,7 @@ class NeuralNetSolver:
         numUnexplored = 0
         for r in self.board.board:
             for t in r:
-                if t.explored:
+                if t.explored or t.marked:
                     numExplored += 1
                 else:
                     numUnexplored += 1
@@ -183,23 +184,44 @@ class NeuralNetSolver:
         self.firstMove()
         if verbose:
             print(self.board)
+        totalMoves = 1
+        moveTimes = []
 
         while not self.board.isSolved():
+            t0 = perf_counter()
             boardState = self.move()
+            t1 = perf_counter()
+            timeToMove = t1 - t0
+            totalMoves += 1
+            moveTimes += [timeToMove]
+
             if boardState:
                 if verbose:
                     print(str(boardState))
             else:
                 # Game is lost
-                return False
-        return True
+                return {
+                    "win": False,
+                    "explored": self.getExploredProportion(),
+                    "numMoves": totalMoves,
+                    "moveTimes": moveTimes,
+                }
+        return {
+            "win": True,
+            "explored": 1,
+            "numMoves": totalMoves,
+            "moveTimes": moveTimes,
+        }
         
 if __name__ == "__main__":
     nns = NeuralNetSolver()
-    if nns.play(verbose=True):
+    stats = nns.play(verbose=True)
+    if stats["win"]:
         print("Hooray, the robot won!")
+        print(stats)
     else:
         print("Stupid robot died :(")
+        print(stats)
 
 
     # TESTING

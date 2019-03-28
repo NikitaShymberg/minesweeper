@@ -32,6 +32,7 @@ TESTING CRITERIA:
 9. A comment on "smartness"
    1.  Maybe whether the mistakes it makes are acceptable but idk
 10. Compare to a random move each time
+    1.  Mention how comparing to human performance bfs is just way better
 
 Interesting Examples:
 
