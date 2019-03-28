@@ -41,7 +41,11 @@ class BruteForceSolver:
                 self.board.board[t.row][t.col].remainingValue -= 1
 
     def move(self):
-        print("Number of bombs left:", self.unmarkedBombs)
+        """
+        Performs the optimal move, if the move was successful returns the
+        current board, else returns None to signify that a mine was triggered
+        """
+        # print("Number of bombs left:", self.unmarkedBombs)
         tilesToConsider = self.getTilesAdjacentToExploredTiles()
         probabilityBoard = self.calculateProbabilities(tilesToConsider)
         completedMove = False # Make all the certain moves at once
@@ -50,7 +54,7 @@ class BruteForceSolver:
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 1 and not self.board.board[i][j].marked:
-                    print("MOVE: mark", i, j)
+                    # print("MOVE: mark", i, j)
                     self.mark(i, j)
                     completedMove = True
 
@@ -58,8 +62,9 @@ class BruteForceSolver:
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 0:
-                    print("MOVE: explore1", i, j)
-                    self.board.explore(i, j)
+                    # print("MOVE: explore1", i, j)
+                    if self.board.explore(i, j):
+                        return None # Game exploded
                     completedMove = True
         
         if completedMove:
@@ -76,8 +81,9 @@ class BruteForceSolver:
                     minimum = pBomb
                     mini = i
                     minj = j
-        print("MOVE: explore2", i, j)
-        self.board.explore(mini, minj)
+        # print("MOVE: explore2", i, j)
+        if self.board.explore(mini, minj):
+            return None # Game exploded
         
         return self.board
                         
@@ -282,18 +288,28 @@ class BruteForceSolver:
         
         return count
 
+    def play(self, verbose=True):
+        """
+        Plays the game, returns stats about the game played
+        """
+        self.firstMove()
+        if verbose:
+            print(self.board)
+
+        while not self.board.isSolved():
+            boardState = self.move()
+            if boardState:
+                if verbose:
+                    print(str(boardState))
+            else:
+                # Game is lost
+                return False
+        return True
+
 if __name__ == "__main__":
     bfs = BruteForceSolver()
-    bfs.firstMove()
-    print(bfs.board)
-
-    while not bfs.board.isSolved(): # FIXME: this isn't the right way to determine if we win
-        print(str(bfs.move()))
+    if bfs.play(verbose=True):
+        print("Hooray, the robot won!")
+    else:
+        print("Stupid robot died :(")
     
-    print("Hooray! I won!")
-        
-    # print(str(bfs.move()))
-    # print(bfs.board)
-    # print(str(bfs.move()))
-    # print(bfs.board)
-    # print(str(bfs.move()))

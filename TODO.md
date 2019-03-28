@@ -7,19 +7,31 @@
 5. Refactor some things
 6. LINT!!
 7. Keep checking what kinds of mistakes it makes
-8. Make better data
-   1. Generate it on a smaller board, I think that's the only way
-      1. This means separate constants for that
-      2. And play with the number of moves again
-   2. Play around with thresholds on trainingData (keep only good data)
 
-Generating data:
-    Make a board with a bunch of bombs
-    Explore some tiles randomly
-    getTilesAdjacentToExploredTiles()
-    process them
-    return that
-    do this on demand
+Third algorithm: https://github.com/jakejhansen/minesweeper_solver
+
+TESTING CRITERIA:
+1. Win rate
+   1. Can ignore games where you lose on the second move perhaps
+2. Stats on time taken to make a move
+   1. Log the time whever a move happens, then process stuff afterwards
+3. Percentage of board explored
+4. Scalability
+   1. 4x4 3 mines
+   2. 8x8 10 mines
+   3. 16x16 40 mines
+   4. 24x24 99 mines
+   5. 50x50 400 mines (bonus?)
+5. Number of moves
+   1. More is better
+   2. If you win then fewer is better but that's an edge case
+6. Memory usage
+   1. This will be different for things on a gpu
+7. Cpu/gpu(?) usage
+8. Maybe how well it runs on cpu
+9. A comment on "smartness"
+   1.  Maybe whether the mistakes it makes are acceptable but idk
+10. Compare to a random move each time
 
 Interesting Examples:
 

@@ -110,7 +110,7 @@ class Board:
             return self.board[row+1][col+1]
 
     def __str__(self):
-        string = " "
+        string = "  "
         # Column headers
         for col in range(WIDTH):
             string += "{0:2}".format(col)
@@ -119,7 +119,7 @@ class Board:
         # The actual rows
         row = 0
         for r in self.board:
-            string += str(row)
+            string += str(row) + " "
             row += 1
             for tile in r:
                 string += str(tile)
@@ -128,7 +128,7 @@ class Board:
         return string
     
     def explore(self, row, col):
-        """ Check the value of a cell """
+        """ Reveal the value of a cell returns whether the cell was a bomb or not """
         # Make the first move safe
         if self.firstMove:
             while self.board[row][col].value == BOMB:
@@ -141,7 +141,7 @@ class Board:
             if(value == BOMB):
                 print(self)
                 print("YOU LOST :(")
-                exit() #FIXME: for testing this isn't actually a good idea.......maybe an exception?
+                return True
 
             if(value == 0):
                 # Explore surrounding tiles
@@ -192,7 +192,8 @@ class Board:
                         self.explore(row+1, col+1)
                     elif self.downRight(row, col).value != BOMB and not self.downRight(row, col).marked:
                         self.downRight(row, col).explore()
-    
+        return False
+
     def mark(self, row, col):
         """ Mark the tile as a bomb and update the number of correctly found bombs """
         self.board[row][col].mark()
@@ -203,6 +204,5 @@ class Board:
         """ Checks if the only remaining unexplored tiles are bombs """
         unExplored = [True for row in self.board for tile in row if not tile.explored]
         if len(unExplored) == MAX_BOMBS:
-            print(self)
             return True
         return False

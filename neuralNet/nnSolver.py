@@ -59,6 +59,10 @@ class NeuralNetSolver:
                 self.board.board[t.row][t.col].remainingValue -= 1
     
     def move(self):
+        """
+        Performs the optimal move, if the move was successful returns the
+        current board, else returns None to signify that a mine was triggered
+        """
         # TODO: clean/reafactor
         validTiles = transformBoard(self.board)
         nnInput = [x["nn"] for x in validTiles]
@@ -67,7 +71,7 @@ class NeuralNetSolver:
         validTiles = validTiles[::6] #Get rid of duplicates since they're already extracted
         avgProbs = np.mean(probs.reshape(-1, 6, 2), axis=1)
 
-        confidence = [abs(x[0] - x[1]) for x in avgProbs]
+        confidence = [max(x) for x in avgProbs]
         for i in range(len(confidence)):
             validTiles[i]["confidence"] = confidence[i]
 
@@ -84,6 +88,7 @@ class NeuralNetSolver:
         print("MARKS:")
         for e in marks:
             print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
+        # TESTING
         
         exploreMove = None
         markMove = None
@@ -138,11 +143,12 @@ class NeuralNetSolver:
         if move == 1:
             self.mark(tile.row, tile.col)
         else:
-            self.board.explore(tile.row, tile.col)
+            if self.board.explore(tile.row, tile.col):
+                return None # Game exploded
         
         return self.board
 
-    def getExploredProportion(self): # BUG this isn't returning the right thing?
+    def getExploredProportion(self):
         numExplored = 0
         numUnexplored = 0
         for r in self.board.board:
@@ -161,7 +167,7 @@ class NeuralNetSolver:
             input = 12
         if MODEL == "2dnnNEW":
             input = 11
-
+        
         if torch.cuda.is_available():
             tiles = tiles.view((-1, input, 5, 5)).cuda()
         else:
@@ -169,15 +175,31 @@ class NeuralNetSolver:
 
         probs = self.net.classifyTiles(tiles)
         return probs
+    
+    def play(self, verbose=True):
+        """
+        Plays the game, returns stats about the game played
+        """
+        self.firstMove()
+        if verbose:
+            print(self.board)
+
+        while not self.board.isSolved():
+            boardState = self.move()
+            if boardState:
+                if verbose:
+                    print(str(boardState))
+            else:
+                # Game is lost
+                return False
+        return True
         
 if __name__ == "__main__":
     nns = NeuralNetSolver()
-    print(nns.firstMove())
-    numMoves = 0 # TODO: put this into the class?
-    while nns.unmarkedBombs > 0: #TODO: have a real win condition check, same for bruteForce
-        print(nns.move())
-        numMoves += 1
-        print("This is move number:", numMoves)
+    if nns.play(verbose=True):
+        print("Hooray, the robot won!")
+    else:
+        print("Stupid robot died :(")
 
 
     # TESTING
