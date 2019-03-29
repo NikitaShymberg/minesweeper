@@ -95,7 +95,7 @@ class NeuralNetSolver:
         markMove = None
         dictToList = lambda d, key: [x[key] for x in d]
         if len(explores) > 0:
-            exploreMove = explores[np.argmax(dictToList(explores, "confidence"))]
+            exploreMove = explores[np.argmin(dictToList(explores, "confidence"))]
 
         if len(marks) > 0:
             # TESTING: I'm not sure maybe this is cheating, this is waht it was before:
