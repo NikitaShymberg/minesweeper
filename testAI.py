@@ -6,7 +6,11 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import *
 from bruteForce.bruteForce import BruteForceSolver
+<<<<<<< HEAD
 # from neuralNet.twoD_nn import miniNet
+=======
+#from neuralNet.twoD_nn import miniNet
+>>>>>>> a6e13d5988b7ce8d5c3a6b013799597b38e85673
 from psutil import cpu_percent
 
 def test_bfs():
