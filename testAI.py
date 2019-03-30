@@ -6,15 +6,15 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import *
 from bruteForce.bruteForce import BruteForceSolver
-from neuralNet.twoD_nn import miniNet
+#from neuralNet.twoD_nn import miniNet
 from psutil import cpu_percent
 
 def test_bfs():
     gameStats = []
     for i, boardLayout in enumerate(BOARDS):
-        # print("Playing on board:", boardLayout)
+        print("Playing on board:", boardLayout)
         for gameNum in range(NUM_GAMES[i]):
-            # print("Game number:", gameNum)
+            print("Game number:", gameNum)
             bfs = BruteForceSolver(boardLayout["rows"], boardLayout["cols"], boardLayout["numBombs"])
             cpu_percent(percpu=True)
             stats = bfs.play(verbose=False)
