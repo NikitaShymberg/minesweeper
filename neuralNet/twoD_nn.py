@@ -11,7 +11,7 @@ import torch.optim as optim
 from game.board import Board
 from game.constants import *
 from game.tile import Tile
-from generateTrainingData import generateTrainingData
+from neuralNet.generateTrainingData import generateTrainingData
 from tensorboardX import SummaryWriter
 
 class miniNet(nn.Module):

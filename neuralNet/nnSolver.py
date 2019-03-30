@@ -16,8 +16,8 @@ import torch
 
 
 class NeuralNetSolver:
-    def __init__(self):
-        self.board = Board()
+    def __init__(self, rows, cols, bombs):
+        self.board = Board(rows, cols, bombs)
         self.unmarkedBombs = MAX_BOMBS
         if torch.cuda.is_available():
             self.net = miniNet().cuda()
@@ -214,7 +214,7 @@ class NeuralNetSolver:
         }
         
 if __name__ == "__main__":
-    nns = NeuralNetSolver()
+    nns = NeuralNetSolver(8, 8, 10)
     stats = nns.play(verbose=True)
     if stats["win"]:
         print("Hooray, the robot won!")

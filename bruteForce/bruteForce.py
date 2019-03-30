@@ -5,7 +5,7 @@ sys.path.append('..') #TODO: must be nicer
 from time import perf_counter
 from game.board import Board
 from game.tile import Tile
-from game.constants import MAX_BOMBS, BOMB, WIDTH, HEIGHT
+from game.constants import BOMB
 from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
@@ -15,7 +15,7 @@ import numpy as np
 from pprint import pprint
 
 class BruteForceSolver:
-    def __init__(self):
+    def __init__(self, rows, cols, bombs):
         # TESTING
         # self.board = Board()
         # self.board.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)]
@@ -25,8 +25,10 @@ class BruteForceSolver:
         #     for c in range(HEIGHT):
         #         self.board.updateCounts(r, c)
         
-        self.board = Board()
-        self.unmarkedBombs = MAX_BOMBS
+        self.rows = rows
+        self.cols = cols
+        self.board = Board(rows, cols, bombs)
+        self.unmarkedBombs = bombs
     
     def firstMove(self):
         # http://www.minesweeper.info/wiki/Strategy#First_Click
@@ -57,7 +59,7 @@ class BruteForceSolver:
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 1 and not self.board.board[i][j].marked:
-                    print("MOVE: mark", i, j)
+                    # print("MOVE: mark", i, j)
                     self.mark(i, j)
                     numMoves += 1
                     completedMove = True
@@ -66,7 +68,7 @@ class BruteForceSolver:
         for i, row in enumerate(probabilityBoard):
             for j, pBomb in enumerate(row):
                 if pBomb == 0:
-                    print("MOVE: explore1", i, j)
+                    # print("MOVE: explore1", i, j)
                     numMoves += 1
                     if self.board.explore(i, j):
                         return None, numMoves # Game exploded
@@ -86,7 +88,7 @@ class BruteForceSolver:
                     minimum = pBomb
                     mini = i
                     minj = j
-        print("MOVE: explore2", i, j)
+        # print("MOVE: explore2", i, j)
         numMoves += 1
         if self.board.explore(mini, minj):
             return None, numMoves # Game exploded
@@ -152,7 +154,7 @@ class BruteForceSolver:
         tilesAndProbability = zip(tilesToConsider, isBombProbability)
         
         # Build the probability board
-        probabilityBoard = [ [ None for i in range(WIDTH) ] for j in range(HEIGHT) ]
+        probabilityBoard = [ [ None for i in range(self.cols) ] for j in range(self.rows) ]
 
         for tp in tilesAndProbability:
             probabilityBoard[tp[0].row][tp[0].col] = tp[1]
@@ -294,6 +296,7 @@ class BruteForceSolver:
         
         return count
 
+    @profile
     def play(self, verbose=True):
         # TODO: omg please test me, this must be 100% right ....Seems like it?
         """
@@ -320,7 +323,7 @@ class BruteForceSolver:
                 # Game is lost
                 return {
                     "win": False,
-                    "explored": 1 - self.countUnexploredTiles() / (WIDTH * HEIGHT),
+                    "explored": 1 - self.countUnexploredTiles() / (self.rows * self.cols),
                     "numMoves": totalMoves,
                     "moveTimes": moveTimes,
                 }
@@ -332,7 +335,7 @@ class BruteForceSolver:
         }
 
 if __name__ == "__main__":
-    bfs = BruteForceSolver()
+    bfs = BruteForceSolver(8, 8, 10) #TODO: input args
     stats = bfs.play(verbose=True)
     if stats["win"]:
         print("Hooray, the robot won!")

@@ -2,34 +2,37 @@ import sys
 sys.path.append('.') #TODO: must be nicer
 sys.path.append('..') #TODO: must be nicer
 
-from game.constants import WIDTH, HEIGHT, BOMB, MAX_BOMBS
+from game.constants import BOMB
 from random import randint
 from game.tile import Tile
 
 class Board:
 
-    def __init__(self):
+    def __init__(self, rows, cols, bombs):
+        self.rows = rows
+        self.cols = cols
+        self.max_bombs = bombs
         self.firstMove = True
         self.correctMarks = 0
-        self.board = [[Tile(0, r, c) for c in range(WIDTH)] for r in range(HEIGHT)]
+        self.board = [[Tile(0, r, c) for c in range(self.cols)] for r in range(self.rows)]
         self.setupBoard() # FIXME: REMOVEME
 
     def setupBoard(self):
-        for r in range(HEIGHT):
-            for c in range(WIDTH):
+        for r in range(self.rows):
+            for c in range(self.cols):
                 self.board[r][c].value = 0
         setBombs = 0
         # NOTE: might be slow if bomb dense
-        while(setBombs < MAX_BOMBS):
-            row = randint(0, WIDTH-1)
-            col = randint(0, HEIGHT-1)
+        while(setBombs < self.max_bombs):
+            row = randint(0, self.cols-1)
+            col = randint(0, self.rows-1)
             if(self.board[row][col].value != BOMB):
                 self.board[row][col] = Tile(BOMB, row, col)
                 setBombs += 1
 
         # TODO: improve?
-        for r in range(WIDTH):
-            for c in range(HEIGHT):
+        for r in range(self.cols):
+            for c in range(self.rows):
                 self.updateCounts(r, c)
 
     def updateCounts(self, row, col):
@@ -68,7 +71,7 @@ class Board:
             return self.board[row][col-1]
 
     def right(self, row, col):
-        if col == WIDTH-1:
+        if col == self.cols-1:
             return None
         else:
             return self.board[row][col+1]
@@ -80,7 +83,7 @@ class Board:
             return self.board[row-1][col]
 
     def down(self, row, col):
-        if row == HEIGHT-1:
+        if row == self.rows-1:
             return None
         else:
             return self.board[row+1][col]
@@ -92,19 +95,19 @@ class Board:
             return self.board[row-1][col-1]
 
     def upRight(self, row, col):
-        if row == 0 or col == WIDTH-1:
+        if row == 0 or col == self.cols-1:
             return None
         else:
             return self.board[row-1][col+1]
 
     def downLeft(self, row, col):
-        if row == HEIGHT-1 or col == 0:
+        if row == self.rows-1 or col == 0:
             return None
         else:
             return self.board[row+1][col-1]
 
     def downRight(self, row, col):
-        if row == HEIGHT-1 or col == WIDTH-1:
+        if row == self.rows-1 or col == self.cols-1:
             return None
         else:
             return self.board[row+1][col+1]
@@ -112,7 +115,7 @@ class Board:
     def __str__(self):
         string = "  "
         # Column headers
-        for col in range(WIDTH):
+        for col in range(self.cols):
             string += "{0:2}".format(col)
         string += "\n"
         
@@ -139,8 +142,8 @@ class Board:
             value = self.board[row][col].explore()
 
             if(value == BOMB):
-                print(self)
-                print("YOU LOST :(")
+                # print(self)
+                # print("YOU LOST :(")
                 return True
 
             if(value == 0):
@@ -203,6 +206,6 @@ class Board:
     def isSolved(self):
         """ Checks if the only remaining unexplored tiles are bombs """
         unExplored = [True for row in self.board for tile in row if not tile.explored]
-        if len(unExplored) == MAX_BOMBS:
+        if len(unExplored) == self.max_bombs:
             return True
         return False

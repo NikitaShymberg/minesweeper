@@ -3,7 +3,7 @@ from constants import WIDTH, HEIGHT, MAX_BOMBS
 # -1 = BOMB
 # number = number of bombs near me
 
-board = Board()
+board = Board(8, 8, 10) # TODO: input args
 
 won = False
 while(not won):
