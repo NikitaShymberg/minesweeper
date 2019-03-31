@@ -196,7 +196,7 @@ def transformBoard(board):
     """
     # FIXME this is hideous
     out = []
-    bfs = BruteForceSolver()
+    bfs = BruteForceSolver(0,0,0)
     bfs.board = board
     tilesToConsider = bfs.getTilesAdjacentToExploredTiles()
     for tile in tilesToConsider:

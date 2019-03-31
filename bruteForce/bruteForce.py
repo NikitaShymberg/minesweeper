@@ -296,7 +296,7 @@ class BruteForceSolver:
         
         return count
 
-    @profile
+    # @profile
     def play(self, verbose=True):
         # TODO: omg please test me, this must be 100% right ....Seems like it?
         """

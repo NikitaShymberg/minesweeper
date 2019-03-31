@@ -6,7 +6,7 @@ from game.board import Board
 from game.tile import Tile
 from game.constants import *
 from bruteForce.bruteForce import BruteForceSolver
-#from neuralNet.twoD_nn import miniNet
+from neuralNet.nnSolver import NeuralNetSolver
 from psutil import cpu_percent
 
 def test_bfs():
@@ -27,11 +27,28 @@ def test_bfs():
                 "CPU": cpu, # Average CPU usage during the game
             }
             with open(STATS_FILE + "bfs", "a") as f:
-                f.write(str(gameStats))
+                f.write(str(gameStats) + ", ")
 
 # TODO: ensure nothing is being printed in each AI
 def test_nn():
-    pass
+    for i, boardLayout in enumerate(BOARDS):
+        print("Playing on board:", boardLayout)
+        for gameNum in range(NUM_GAMES[i]):
+            print("Game number:", gameNum)
+            nns = NeuralNetSolver(boardLayout["rows"], boardLayout["cols"], boardLayout["numBombs"])
+            cpu_percent(percpu=True)
+            stats = nns.play(verbose=False)
+            cpu = cpu_percent(percpu=True)
+            gameStats = {
+                "boardLayout": boardLayout, # The type of board that the game was played on
+                "moveTimes": stats["moveTimes"], # The time taken to complete each move
+                "numMoves": stats["numMoves"], # The total number of moves that happened in the game
+                "win": stats["win"], # Whether the robot won or lost
+                "explored": stats["explored"], # The explored proportion of the board
+                "CPU": cpu, # Average CPU usage during the game
+            }
+            with open(STATS_FILE + "nn", "a") as f:
+                f.write(str(gameStats) + ", ")
 
 def test_q():
     pass

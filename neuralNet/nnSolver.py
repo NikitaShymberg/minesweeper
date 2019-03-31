@@ -9,8 +9,8 @@ from game.constants import *
 from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
-from twoD_nn import miniNet
-from generateTrainingData import transformBoard, generateTrainingData, printData
+from neuralNet.twoD_nn import miniNet
+from neuralNet.generateTrainingData import transformBoard, generateTrainingData, printData
 import numpy as np
 import torch
 
@@ -18,7 +18,7 @@ import torch
 class NeuralNetSolver:
     def __init__(self, rows, cols, bombs):
         self.board = Board(rows, cols, bombs)
-        self.unmarkedBombs = MAX_BOMBS
+        self.unmarkedBombs = bombs
         if torch.cuda.is_available():
             self.net = miniNet().cuda()
         else:
@@ -83,12 +83,12 @@ class NeuralNetSolver:
         marks = validTiles[marks]
 
         # TESTING
-        print("EXPLORES:")
-        for e in explores:
-            print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
-        print("MARKS:")
-        for e in marks:
-            print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
+        # print("EXPLORES:")
+        # for e in explores:
+        #     print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
+        # print("MARKS:")
+        # for e in marks:
+        #     print(e["tile"].row, e["tile"].col, "certainty:", e["confidence"])
         # TESTING
         
         exploreMove = None
@@ -108,8 +108,8 @@ class NeuralNetSolver:
                 surroundingValues = [t.remainingValue for t in surroundingTiles if t is not None and t.explored]
                 if 0 in surroundingValues:
                     marks = np.delete(marks, index)
-                    print("-"*16, "Tried to make a stupid move :(", "-"*16, ":", "MARK:", markMove["tile"].row, markMove["tile"].col)
-                    print("Instead I will", "Explore:", markMove["tile"].row, markMove["tile"].col)
+                    # print("-"*16, "Tried to make a stupid move :(", "-"*16, ":", "MARK:", markMove["tile"].row, markMove["tile"].col)
+                    # print("Instead I will", "Explore:", markMove["tile"].row, markMove["tile"].col)
                     self.board.explore(markMove["tile"].row, markMove["tile"].col)
                     return self.board
                 else:
@@ -125,7 +125,7 @@ class NeuralNetSolver:
             tile = markMove["tile"]
         else:
             # TODO: consider unexplored tiles adjacent to validTiles ?
-            print("-"*16, "I AM UNCERTAIN ABOUT THIS MOVE!", "-"*16)
+            # print("-"*16, "I AM UNCERTAIN ABOUT THIS MOVE!", "-"*16)
             farTiles = []
             for r in self.board.board:
                 for tile in r:
@@ -137,10 +137,10 @@ class NeuralNetSolver:
             else:
                 tile = exploreMove["tile"]
 
-        print("Chosen tile:", tile.row, tile.col)
-        print("Chosen move:", "Mark" if move == 1 else "Explore")
-        print("Certainty:", markMove["confidence"] if move == 1 else exploreMove["confidence"])
-        print("Thresholds: Explore", MOVE_CERTAINTY_THRESHOLD * exploredProportion, "Mark", MARK_CERTAINTY_THRESHOLD / exploredProportion)
+        # print("Chosen tile:", tile.row, tile.col)
+        # print("Chosen move:", "Mark" if move == 1 else "Explore")
+        # print("Certainty:", markMove["confidence"] if move == 1 else exploreMove["confidence"])
+        # print("Thresholds: Explore", MOVE_CERTAINTY_THRESHOLD * exploredProportion, "Mark", MARK_CERTAINTY_THRESHOLD / exploredProportion)
         if move == 1:
             self.mark(tile.row, tile.col)
         else:
@@ -177,6 +177,7 @@ class NeuralNetSolver:
         probs = self.net.classifyTiles(tiles)
         return probs
     
+    # @profile
     def play(self, verbose=True):
         """
         Plays the game, returns stats about the game played
@@ -214,7 +215,7 @@ class NeuralNetSolver:
         }
         
 if __name__ == "__main__":
-    nns = NeuralNetSolver(8, 8, 10)
+    nns = NeuralNetSolver(24, 24, 99)
     stats = nns.play(verbose=True)
     if stats["win"]:
         print("Hooray, the robot won!")
