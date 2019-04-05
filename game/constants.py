@@ -18,7 +18,7 @@ EXPLORE_COEFF = 1 # TODO: determine me!
 # BOARDS = [
 #     {"rows": 4, "cols": 4, "numBombs": 3},
 # ]
-NUM_GAMES = [1000, 50, 10, 10, 10]
+NUM_GAMES = [1000, 50, 50, 50, 50]
 BOARDS = [
     {"rows": 4, "cols": 4, "numBombs": 3},
     {"rows": 8, "cols": 8, "numBombs": 10},

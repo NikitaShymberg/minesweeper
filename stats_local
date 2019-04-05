@@ -1,0 +1,74 @@
+BOARDS = [
+    {"rows": 4, "cols": 4, "numBombs": 3},      Wins: 615
+                                                Losses: 386
+                                                Mean moves: 8.077
+                                                Median moves: 8
+                                                Std: 4.572
+                                                Min: 2
+                                                Max: 19 <---???
+
+                                                Mean explore: 0.735
+                                                Median explore: 1.0
+                                                Std: 0.331
+                                                Min: 0.0625
+                                                Max: 1.0
+
+
+    {"rows": 8, "cols": 8, "numBombs": 10},     Wins: 318
+                                                Losses: 183
+                                                Mean moves: 27.998
+                                                Median moves: 33
+                                                Std: 16.60
+                                                Min: 2
+                                                Max: 64
+
+                                                Mean explore: 0.7486875
+                                                Median explore: 1.0
+                                                Std: 0.370
+                                                Min: 0.015625
+                                                Max: 1.0
+
+    {"rows": 16, "cols": 16, "numBombs": 40},   Wins: 282
+                                                Losses: 219
+                                                Mean moves: 102.49
+                                                Median moves: 134
+                                                Std: 64.51
+                                                Min: 2
+                                                Max: 199
+
+                                                Mean explore: 0.7121
+                                                Median explore: 1.0
+                                                Std: 0.415
+                                                Min: 0.0039
+                                                Max: 1.0
+    
+    {"rows": 24, "cols": 24, "numBombs": 99},   Wins: 187
+                                                Losses: 314
+                                                Mean moves: 222.844
+                                                Median moves: 319.5
+                                                Std: 162.227
+                                                Min: 2
+                                                Max: 440
+
+                                                Mean explore: 0.588
+                                                Median explore: 0.816
+                                                Std: 0.432
+                                                Min: 0.0017
+                                                Max: 1.0
+
+
+    {"rows": 50, "cols": 50, "numBombs": 400},  Wins: 159
+                                                Losses: 342
+                                                Mean moves: 897.728
+                                                Median moves: 1250.5
+                                                Std: 582.15
+                                                Min: 2
+                                                Max: 1435
+
+                                                Mean explore: 0.633
+                                                Median explore: 0.837
+                                                Std: 0.426
+                                                Min: 0.0004
+                                                Max: 1.0
+
+]

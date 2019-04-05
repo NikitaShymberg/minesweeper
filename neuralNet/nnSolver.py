@@ -177,7 +177,7 @@ class NeuralNetSolver:
         probs = self.net.classifyTiles(tiles)
         return probs
     
-    # @profile
+    @profile
     def play(self, verbose=True):
         """
         Plays the game, returns stats about the game played

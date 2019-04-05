@@ -10,9 +10,11 @@ from itertools import permutations, chain
 from sympy.utilities.iterables import multiset_permutations
 from math import factorial
 import numpy as np
+from memory_profiler import profile
 
 #TESTING
 from pprint import pprint
+from itertools import product
 
 class BruteForceSolver:
     def __init__(self, rows, cols, bombs):
@@ -94,7 +96,7 @@ class BruteForceSolver:
             return None, numMoves # Game exploded
         
         return self.board, numMoves
-                        
+    @profile                    
     def calculateProbabilities(self, tilesToConsider):
         """ Calculates the probability of each tile being a bomb TODO: too long func """
         numUnexplored = self.countUnexploredTiles()
@@ -215,7 +217,7 @@ class BruteForceSolver:
             if a.col == b.col - 1 or a.col == b.col or a.col == b.col + 1:
                 return True
             return False
-    
+    @profile
     def permuteBombsInTiles(self, tiles):
         """ 
         Set up all the possible (valid and invalid) permutations of bombs in the given tiles 
@@ -223,9 +225,10 @@ class BruteForceSolver:
         """
         possiblePermutations = []
         # FIXME: this is also slow
-        for numBombs in range(min(self.unmarkedBombs + 1, len(tiles))):
-            bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
-            possiblePermutations += list(multiset_permutations(bombArrangement))
+        # for numBombs in range(min(self.unmarkedBombs + 1, len(tiles))):
+            # bombArrangement = [BOMB] * numBombs + [0] * (len(tiles) - numBombs)
+            # possiblePermutations += list(multiset_permutations(bombArrangement))
+        possiblePermutations = [x for x in list(product([0, BOMB], repeat=len(tiles))) if sum(x) >= -1 * min(self.unmarkedBombs + 1, len(tiles))]
 
         # Format: [bomb arrangement[isBomb]]
         possiblePermutations = np.array(possiblePermutations, dtype=int)
@@ -240,8 +243,10 @@ class BruteForceSolver:
         mapBombsToTiles = lambda bombs, tile: {"tile": tile, "isBomb": bombs}
         mapBombsToTiles = np.vectorize(mapBombsToTiles)
         # print("PossiblePermutations shape:", possiblePermutations.shape) # TESTING - number of perms and tiles
-        mappedPermutations = mapBombsToTiles(possiblePermutations, tiles)
+        mappedPermutations = mapBombsToTiles(possiblePermutations, tiles) #FIXME: this is where memory dies! Maybe generator it
         
+        # TESTING
+        print("mappedPermutations length:", len(mappedPermutations))
         return mappedPermutations
 
     
@@ -296,7 +301,7 @@ class BruteForceSolver:
         
         return count
 
-    # @profile
+    @profile
     def play(self, verbose=True):
         # TODO: omg please test me, this must be 100% right ....Seems like it?
         """
@@ -335,7 +340,7 @@ class BruteForceSolver:
         }
 
 if __name__ == "__main__":
-    bfs = BruteForceSolver(8, 8, 10) #TODO: input args
+    bfs = BruteForceSolver(16, 16, 40) #TODO: input args
     stats = bfs.play(verbose=True)
     if stats["win"]:
         print("Hooray, the robot won!")
