@@ -4,14 +4,5 @@
 ## Goal:
 To write, compare, and analyze three different approaches to create a solver for the classic computer game Minesweeper
 
-## Task List:
-- [x] Create the game
-  - [ ] Optional: make it a little prettier
-- [x] Brute force solver
-- [ ] Neural network
-- [ ] Third algorithm (random forest?)
-- [ ] Compare in terms of:
-  - [ ] Winrate
-  - [ ] Average solve time
-  - [ ] Scalability
-  - [ ] Types of mistakes
+## Update:
+I've achieved the goal above and have given several presentations on this topic. I will upate this repository with the new info when I have a moment.
